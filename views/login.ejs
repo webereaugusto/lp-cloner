@@ -243,14 +243,25 @@
                     body: JSON.stringify({ email, password })
                 });
 
-                const data = await response.json();
+                let data;
+                try {
+                    data = await response.json();
+                } catch (jsonError) {
+                    console.error('Erro ao parsear JSON:', jsonError);
+                    const text = await response.text();
+                    console.error('Resposta do servidor:', text);
+                    showAlert('Erro no servidor. Verifique os logs.', 'danger');
+                    return;
+                }
+
                 if (response.ok) {
                     window.location.href = '/dashboard';
                 } else {
                     showAlert(data.error || 'Erro ao fazer login', 'danger');
                 }
             } catch (error) {
-                showAlert('Erro de conexão', 'danger');
+                console.error('Erro de conexão:', error);
+                showAlert('Erro de conexão: ' + error.message, 'danger');
             }
         });
 

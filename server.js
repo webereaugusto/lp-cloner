@@ -32,15 +32,22 @@ app.use(express.static('public'));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
+// Trust proxy (necessário para Render)
+app.set('trust proxy', 1);
+
 // Configurar sessões
 app.use(session({
-    store: new SQLiteStore({ db: 'sessions.db' }),
+    store: new SQLiteStore({ 
+        db: 'sessions.db',
+        dir: './'
+    }),
     secret: process.env.SESSION_SECRET || 'lp-cloner-secret-key-change-in-production',
     resave: false,
     saveUninitialized: false,
     cookie: { 
-        secure: process.env.NODE_ENV === 'production',
+        secure: false, // Render usa HTTPS, mas deixar false por enquanto para debug
         httpOnly: true,
+        sameSite: 'lax',
         maxAge: 30 * 24 * 60 * 60 * 1000 // 30 dias
     }
 }));
@@ -85,18 +92,32 @@ app.post('/auth/register', async (req, res) => {
 });
 
 app.post('/auth/login', async (req, res) => {
-    const { email, password } = req.body;
-    if (!email || !password) {
-        return res.status(400).json({ error: 'Email e senha são obrigatórios' });
-    }
+    try {
+        const { email, password } = req.body;
+        
+        if (!email || !password) {
+            return res.status(400).json({ error: 'Email e senha são obrigatórios' });
+        }
 
-    const result = await login(email, password);
-    if (result.success) {
-        req.session.userId = result.user.id;
-        req.session.userEmail = result.user.email;
-        res.json({ success: true });
-    } else {
-        res.status(401).json({ error: result.error });
+        const result = await login(email, password);
+        if (result.success) {
+            req.session.userId = result.user.id;
+            req.session.userEmail = result.user.email;
+            
+            // Salvar sessão antes de enviar resposta
+            req.session.save((err) => {
+                if (err) {
+                    console.error('Erro ao salvar sessão:', err);
+                    return res.status(500).json({ error: 'Erro ao criar sessão' });
+                }
+                res.json({ success: true });
+            });
+        } else {
+            res.status(401).json({ error: result.error });
+        }
+    } catch (error) {
+        console.error('Erro no endpoint /auth/login:', error);
+        res.status(500).json({ error: 'Erro interno do servidor' });
     }
 });
 
