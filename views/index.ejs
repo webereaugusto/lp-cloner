@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>LP Cloner</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --sidebar-width: 260px;
+            --bg-color: #f8f9fa;
+            --text-color: #212529;
+            --card-bg: #ffffff;
+            --card-border: #dee2e6;
+            --muted: #6c757d;
+            --btn-outline: #0d6efd;
+            --primary: #0d6efd;
+            --sidebar-bg: #ffffff;
+            --sidebar-text: #495057;
+            --sidebar-active: #e7f3ff;
+            --sidebar-hover: #f8f9fa;
+        }
+
+        .theme-dark {
+            --bg-color: #0f1115;
+            --text-color: #e9ecef;
+            --card-bg: #1a1f29;
+            --card-border: #2b3340;
+            --muted: #a1a7b3;
+            --btn-outline: #66b2ff;
+            --primary: #66b2ff;
+            --sidebar-bg: #1a1f29;
+            --sidebar-text: #a1a7b3;
+            --sidebar-active: #2b3340;
+            --sidebar-hover: #212529;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            width: var(--sidebar-width);
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--card-border);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .sidebar-brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .sidebar-brand i {
+            color: var(--primary);
+        }
+
+        .sidebar-menu {
+            padding: 1rem 0;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1.5rem;
+            color: var(--sidebar-text);
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .menu-item:hover {
+            background: var(--sidebar-hover);
+            color: var(--text-color);
+        }
+
+        .menu-item.active {
+            background: var(--sidebar-active);
+            color: var(--primary);
+            border-left: 3px solid var(--primary);
+        }
+
+        .menu-item i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .sidebar-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--card-border);
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: var(--sidebar-bg);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+            padding: 2rem;
+            transition: margin-left 0.3s ease;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .page-subtitle {
+            color: var(--muted);
+            font-size: 0.95rem;
+            margin: 0.25rem 0 0 0;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+        }
+
+        .stat-icon.primary { background: rgba(13,110,253,0.1); color: var(--primary); }
+        .stat-icon.success { background: rgba(25,135,84,0.1); color: #198754; }
+        .stat-icon.warning { background: rgba(255,193,7,0.1); color: #ffc107; }
+        .stat-icon.info { background: rgba(13,202,240,0.1); color: #0dcaf0; }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+        }
+
+        .stat-label {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        /* Content Cards */
+        .content-section {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Forms */
+        .form-control, .btn {
+            border-radius: 8px;
+        }
+
+        .card {
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .url-pill {
+            display: inline-block;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            border-radius: 999px;
+            padding: 6px 12px;
+            background: rgba(13,110,253,.08);
+            border: 1px dashed var(--primary);
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .file-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .file-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transform: translateY(-2px);
+        }
+
+        .status-switch-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .status-switch {
+            position: relative;
+            display: inline-block;
+            width: 64px;
+            height: 32px;
+        }
+
+        .status-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .status-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 34px;
+        }
+
+        .status-slider:before {
+            position: absolute;
+            content: "";
+            height: 24px;
+            width: 24px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .status-switch input:checked + .status-slider {
+            background: linear-gradient(135deg, #198754 0%, #20c997 100%);
+        }
+
+        .status-switch input:not(:checked) + .status-slider {
+            background: linear-gradient(135deg, #ffc107 0%, #ffb800 100%);
+        }
+
+        .status-switch input:checked + .status-slider:before {
+            transform: translateX(32px);
+        }
+
+        .status-label {
+            white-space: nowrap;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .status-label.published {
+            color: #198754;
+        }
+
+        .status-label.draft {
+            color: #ffc107;
+        }
+
+        .status-switch:hover .status-slider {
+            box-shadow: 0 0 12px rgba(0,0,0,0.15);
+        }
+
+        .strikethrough {
+            text-decoration: line-through;
+            opacity: 0.5;
+        }
+
+        .progress-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+
+        .progress-content {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 2rem;
+            min-width: 400px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+
+        .progress-spinner {
+            width: 80px;
+            height: 80px;
+            border: 8px solid var(--card-border);
+            border-top: 8px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1.5rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .progress-steps {
+            text-align: left;
+            margin: 1.5rem 0;
+        }
+
+        .progress-step {
+            padding: 0.5rem;
+            margin: 0.5rem 0;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .progress-step.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .progress-step.completed {
+            background: rgba(25,135,84,0.1);
+            color: #198754;
+        }
+
+        .success-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10001;
+        }
+
+        .success-content {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 2.5rem;
+            min-width: 450px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(25,135,84,0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            animation: scaleIn 0.5s ease-out;
+        }
+
+        .success-icon i {
+            font-size: 2.5rem;
+            color: #198754;
+            animation: bounce 0.6s ease-out;
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+            }
+            to {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .success-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .success-btn {
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .success-btn.primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .success-btn.outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .success-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-color);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--card-border);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--muted);
+        }
+
+        /* Animações */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-brand">
+                <i class="fas fa-copy"></i>
+                LP Cloner
+            </div>
+        </div>
+
+        <div class="sidebar-menu">
+            <a href="#" class="menu-item active" onclick="showSection('dashboard'); return false;">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="#" class="menu-item" onclick="showSection('new'); return false;">
+                <i class="fas fa-plus-circle"></i>
+                <span>Novo Clone</span>
+            </a>
+            <a href="#" class="menu-item" onclick="showSection('files'); return false;">
+                <i class="fas fa-folder-open"></i>
+                <span>Clones</span>
+            </a>
+        </div>
+
+        <div class="sidebar-footer">
+            <button id="themeToggle" class="menu-item w-100 text-start border-0" style="background: transparent;">
+                <i class="fas fa-moon"></i>
+                <span>Tema Dark</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Dashboard Section -->
+        <div id="dashboardSection" class="content-section fade-in">
+            <div class="top-bar">
+                <div>
+                    <h1 class="page-title">Dashboard</h1>
+                    <p class="page-subtitle">Visão geral dos seus clones</p>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon primary">
+                        <i class="fas fa-file-code"></i>
+                    </div>
+                    <div class="stat-value" id="statTotalFiles"><%= stats ? stats.totalFiles : 0 %></div>
+                    <div class="stat-label">Total de Clones</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon success">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-value" id="statPublished"><%= stats ? stats.published : 0 %></div>
+                    <div class="stat-label">Publicados</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon warning">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-value" id="statDrafts"><%= stats ? stats.drafts : 0 %></div>
+                    <div class="stat-label">Rascunhos</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon info">
+                        <i class="fas fa-link"></i>
+                    </div>
+                    <div class="stat-value" id="statTotalLinks"><%= stats ? stats.totalLinks : 0 %></div>
+                    <div class="stat-label">Links Totais</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- New Clone Section -->
+        <div id="newSection" class="content-section fade-in" style="display: none;">
+            <h2 class="section-title">
+                <i class="fas fa-plus-circle"></i>
+                Clonar Nova Página
+            </h2>
+            <form id="copyForm">
+                <div class="mb-3">
+                    <label for="url" class="form-label">URL da página</label>
+                    <input type="url" class="form-control form-control-lg" id="url" name="url"
+                           placeholder="https://exemplo.com" required>
+                    <div class="form-text">
+                        Digite uma URL completa (incluindo http:// ou https://)
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                    <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                    <i class="fas fa-clone me-2"></i> Copiar HTML
+                </button>
+            </form>
+
+            <div id="alertContainer" class="mt-3"></div>
+        </div>
+
+        <!-- Files Section -->
+        <div id="filesSection" class="content-section fade-in" style="display: none;">
+            <h2 class="section-title">
+                <i class="fas fa-folder-open"></i>
+                Clones Salvos
+            </h2>
+            <% if (files && files.length > 0) { %>
+                <div id="filesList">
+                    <% files.forEach(file => { %>
+                        <div class="file-card fade-in" id="card_<%= file.name %>">
+                            <!-- Status Switch -->
+                            <div class="status-switch-container">
+                                <label class="status-switch">
+                                    <input type="checkbox" 
+                                           <%= file.publishInfo ? 'checked' : '' %>
+                                           onchange="togglePublishStatus('<%= file.name %>', this.checked)"
+                                           id="switch_<%= file.name %>">
+                                    <span class="status-slider"></span>
+                                </label>
+                                <span class="status-label <%= file.publishInfo ? 'published' : 'draft' %>" id="label_<%= file.name %>">
+                                    <%= file.publishInfo ? 'Publicado' : 'Rascunho' %>
+                                </span>
+                            </div>
+                            
+                            <% if (file.originalUrl) { %>
+                                <div class="mb-2">
+                                    <a href="<%= file.originalUrl %>" target="_blank" class="url-pill" title="<%= file.originalUrl %>">
+                                        <%= file.originalUrl %>
+                                    </a>
+                                </div>
+                            <% } %>
+                            <div class="d-flex align-items-center gap-3 mb-2 flex-wrap">
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar"></i> <%= new Date(file.created).toLocaleString('pt-BR') %>
+                                </small>
+                                <small class="text-muted">
+                                    <i class="fas fa-weight-hanging"></i> <%= (file.size / 1024).toFixed(1) %> KB
+                                </small>
+                            </div>
+                            <div class="mb-2" id="publicUrl_<%= file.name %>">
+                                <small class="text-muted <%= file.publishInfo ? '' : 'strikethrough' %>">
+                                    <i class="fas fa-link"></i> URL Pública:
+                                    <% if (file.publishInfo) { %>
+                                        <a href="<%= file.publishInfo.publicUrl %>" target="_blank" class="text-decoration-none">
+                                            <%= file.publishInfo.publicUrl %>
+                                        </a>
+                                    <% } else { %>
+                                        <span id="urlText_<%= file.name %>">/p/---</span>
+                                    <% } %>
+                                </small>
+                            </div>
+                            <div class="btn-group flex-wrap" role="group">
+                                <a href="/download/<%= file.name %>" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-download"></i> Download
+                                </a>
+                                <a href="<%= file.url %>" target="_blank" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-eye"></i> Visualizar
+                                </a>
+                                <button type="button" class="btn btn-outline-info btn-sm"
+                                        onclick="viewLinks('<%= file.name %>')">
+                                    <i class="fas fa-link"></i> Links
+                                </button>
+                                <button type="button" class="btn btn-outline-danger btn-sm"
+                                        onclick="deleteFile('<%= file.name %>')">
+                                    <i class="fas fa-trash"></i> Excluir
+                                </button>
+                            </div>
+                        </div>
+                    <% }); %>
+                </div>
+            <% } else { %>
+                <div class="text-center py-5">
+                    <i class="fas fa-folder-open" style="font-size: 4rem; color: var(--muted);"></i>
+                    <p class="mt-3 text-muted">Nenhum arquivo salvo ainda</p>
+                </div>
+            <% } %>
+        </div>
+
+        <!-- Published Section -->
+        <div id="publishedSection" class="content-section fade-in" style="display: none;">
+            <h2 class="section-title">
+                <i class="fas fa-globe"></i>
+                Páginas Publicadas
+            </h2>
+            <% if (files && files.filter(f => f.publishInfo).length > 0) { %>
+                <% files.filter(f => f.publishInfo).forEach(file => { %>
+                    <div class="file-card fade-in">
+                        <div class="status-switch-container">
+                            <label class="status-switch">
+                                <input type="checkbox" checked onchange="togglePublishStatus('<%= file.name %>', this.checked)" id="switch_<%= file.name %>">
+                                <span class="status-slider"></span>
+                            </label>
+                            <span class="status-label published" id="label_<%= file.name %>">Publicado</span>
+                        </div>
+                        
+                        <% if (file.originalUrl) { %>
+                            <div class="mb-2">
+                                <a href="<%= file.originalUrl %>" target="_blank" class="url-pill" title="<%= file.originalUrl %>">
+                                    <%= file.originalUrl %>
+                                </a>
+                            </div>
+                        <% } %>
+                        <div class="mb-2" id="publicUrl_<%= file.name %>">
+                            <small class="text-muted">
+                                <i class="fas fa-link"></i> URL Pública:
+                                <a href="<%= file.publishInfo.publicUrl %>" target="_blank" class="text-decoration-none fw-bold">
+                                    <%= file.publishInfo.publicUrl %>
+                                </a>
+                            </small>
+                        </div>
+                        <div class="btn-group" role="group">
+                            <a href="<%= file.publishInfo.publicUrl %>" target="_blank" class="btn btn-primary btn-sm">
+                                <i class="fas fa-external-link-alt"></i> Abrir
+                            </a>
+                            <a href="<%= file.url %>" target="_blank" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-eye"></i> Visualizar
+                            </a>
+                        </div>
+                    </div>
+                <% }); %>
+            <% } else { %>
+                <div class="text-center py-5">
+                    <i class="fas fa-globe" style="font-size: 4rem; color: var(--muted);"></i>
+                    <p class="mt-3 text-muted">Nenhuma página publicada ainda</p>
+                </div>
+            <% } %>
+        </div>
+
+        <!-- Progress Modal -->
+        <div id="progressModal" class="progress-modal">
+            <div class="progress-content">
+                <div class="progress-spinner"></div>
+                <h4 class="mb-3">Clonando página...</h4>
+                <div class="progress-steps">
+                    <div class="progress-step" id="step1">
+                        <i class="fas fa-circle-dot"></i> Conectando ao servidor
+                    </div>
+                    <div class="progress-step" id="step2">
+                        <i class="fas fa-circle-dot"></i> Baixando conteúdo
+                    </div>
+                    <div class="progress-step" id="step3">
+                        <i class="fas fa-circle-dot"></i> Analisando links
+                    </div>
+                    <div class="progress-step" id="step4">
+                        <i class="fas fa-circle-dot"></i> Salvando arquivo
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Success Dialog -->
+        <div id="successModal" class="success-modal">
+            <div class="success-content">
+                <div class="success-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h3 class="mb-2">Clone criado com sucesso!</h3>
+                <p class="text-muted mb-4">O que deseja fazer agora?</p>
+                <div class="success-actions">
+                    <button class="success-btn outline" onclick="goToDashboard()">
+                        <i class="fas fa-th-large me-2"></i> Voltar ao Dashboard
+                    </button>
+                    <button class="success-btn primary" onclick="configureLinks()">
+                        <i class="fas fa-link me-2"></i> Configurar Links
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Links Container (overlay) -->
+        <div id="linksContainer" class="content-section" style="display: none; position: fixed; top: 20px; left: calc(var(--sidebar-width) + 20px); right: 20px; z-index: 2000; max-height: 90vh; overflow-y: auto;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">Links Encontrados <span id="linksCount" class="badge bg-primary"></span></h5>
+                <div>
+                    <button class="btn btn-sm btn-warning me-2" id="editLinksBtn" onclick="toggleEditMode()">
+                        <i class="fas fa-edit"></i> Editar Links
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="hideLinks()">
+                        <i class="fas fa-times"></i> Fechar
+                    </button>
+                </div>
+            </div>
+            <div id="originalUrlDisplay" style="display: none;" class="mb-3 pb-3 border-bottom">
+                <small class="text-muted">URL Origem:</small>
+                <a href="#" id="originalUrlLink" target="_blank" class="url-pill ms-2" style="font-size: 0.85rem;"></a>
+            </div>
+            <div id="linksList" class="row"></div>
+            <div id="editBar" class="mt-3 pt-3 border-top" style="display: none;">
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">Modifique as URLs desejadas e clique em "Aplicar Mudanças"</small>
+                    <div>
+                        <button class="btn btn-sm btn-success me-2" onclick="applyChanges()">
+                            <i class="fas fa-save"></i> Aplicar Mudanças
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="cancelEdit()">
+                            Cancelar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Menu Navigation
+        function showSection(section) {
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(s => s.style.display = 'none');
+            
+            // Remove active from all menu items
+            document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+            
+            // Show selected section
+            document.getElementById(section + 'Section').style.display = 'block';
+            
+            // Add active to clicked menu item
+            event.target.closest('.menu-item').classList.add('active');
+        }
+
+        // Theme Toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = themeToggle.querySelector('i');
+        const themeText = themeToggle.querySelector('span');
+
+        (function initTheme() {
+            const saved = localStorage.getItem('app-theme') || 'light';
+            if (saved === 'dark') {
+                document.body.classList.add('theme-dark');
+                themeIcon.className = 'fas fa-sun';
+                themeText.textContent = 'Tema Light';
+            } else {
+                themeIcon.className = 'fas fa-moon';
+                themeText.textContent = 'Tema Dark';
+            }
+        })();
+
+        themeToggle.addEventListener('click', () => {
+            const isDark = document.body.classList.toggle('theme-dark');
+            localStorage.setItem('app-theme', isDark ? 'dark' : 'light');
+            themeIcon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+            themeText.textContent = isDark ? 'Tema Light' : 'Tema Dark';
+        });
+
+        // Form handling
+        const copyForm = document.getElementById('copyForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const alertContainer = document.getElementById('alertContainer');
+
+        function showAlert(message, type = 'success') {
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type} alert-dismissible fade show`;
+            alert.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            alertContainer.appendChild(alert);
+
+            setTimeout(() => {
+                if (alert.parentNode) {
+                    alert.remove();
+                }
+            }, 5000);
+        }
+
+        async function deleteFile(filename) {
+            if (!confirm('Tem certeza que deseja excluir este arquivo?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/html/${filename}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    showAlert('Arquivo excluído com sucesso!');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showAlert('Erro ao excluir arquivo', 'danger');
+                }
+            } catch (error) {
+                showAlert('Erro ao excluir arquivo', 'danger');
+            }
+        }
+
+        // Variables for editing
+        let currentLinks = [];
+        let currentFilename = '';
+        let currentOriginalUrl = '';
+        let isEditMode = false;
+
+        function showLinks(links, totalCount, filename, originalUrl) {
+            currentLinks = [...links];
+            currentFilename = filename;
+            currentOriginalUrl = originalUrl || '';
+            isEditMode = false;
+
+            const linksContainer = document.getElementById('linksContainer');
+            const linksCount = document.getElementById('linksCount');
+            const linksList = document.getElementById('linksList');
+            const editLinksBtn = document.getElementById('editLinksBtn');
+            const editBar = document.getElementById('editBar');
+            const originalUrlDisplay = document.getElementById('originalUrlDisplay');
+            const originalUrlLink = document.getElementById('originalUrlLink');
+
+            linksCount.textContent = totalCount;
+            linksList.innerHTML = '';
+            editLinksBtn.style.display = 'inline-block';
+            editBar.style.display = 'none';
+
+            if (originalUrl) {
+                originalUrlDisplay.style.display = 'block';
+                originalUrlLink.href = originalUrl;
+                originalUrlLink.textContent = originalUrl;
+                originalUrlLink.title = originalUrl;
+            } else {
+                originalUrlDisplay.style.display = 'none';
+            }
+
+            links.forEach((link, index) => {
+                const col = document.createElement('div');
+                col.className = 'col-md-6 mb-2';
+                col.setAttribute('data-index', index);
+
+                col.innerHTML = `
+                    <div class="file-card">
+                        <div class="view-mode">
+                            <h6 class="card-title text-truncate" title="${link.text}">
+                                ${link.text}
+                            </h6>
+                            <p class="small text-muted text-truncate" title="${link.url}">
+                                ${link.url}
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-${link.isExternal ? 'warning' : 'success'}">
+                                    ${link.isExternal ? 'Externo' : 'Interno'}
+                                </small>
+                                <a href="${link.url}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    Visitar
+                                </a>
+                            </div>
+                        </div>
+                        <div class="edit-mode" style="display: none;">
+                            <div class="mb-2">
+                                <label class="form-label small">Texto do Link:</label>
+                                <input type="text" class="form-control form-control-sm link-text" value="${link.text}" placeholder="Texto do link">
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small">URL:</label>
+                                <input type="url" class="form-control form-control-sm link-url" value="${link.url}" placeholder="https://exemplo.com">
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">Link ${index + 1}</small>
+                                <button class="btn btn-sm btn-outline-danger" onclick="removeLink(${index})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                linksList.appendChild(col);
+            });
+
+            linksContainer.style.display = 'block';
+        }
+
+        async function viewLinks(filename) {
+            try {
+                const response = await fetch(`/metadata/${filename}`);
+                if (response.ok) {
+                    const metadata = await response.json();
+                    showLinks(metadata.links, metadata.totalLinks, filename, metadata.originalUrl);
+                } else {
+                    showAlert('Metadados não encontrados para este arquivo', 'warning');
+                }
+            } catch (error) {
+                showAlert('Erro ao carregar links', 'danger');
+            }
+        }
+
+        function hideLinks() {
+            document.getElementById('linksContainer').style.display = 'none';
+        }
+
+        function toggleEditMode() {
+            const viewModes = document.querySelectorAll('.view-mode');
+            const editModes = document.querySelectorAll('.edit-mode');
+            const editBar = document.getElementById('editBar');
+            const editLinksBtn = document.getElementById('editLinksBtn');
+
+            isEditMode = !isEditMode;
+
+            if (isEditMode) {
+                viewModes.forEach(mode => mode.style.display = 'none');
+                editModes.forEach(mode => mode.style.display = 'block');
+                editLinksBtn.style.display = 'none';
+                editBar.style.display = 'block';
+            } else {
+                cancelEdit();
+            }
+        }
+
+        async function applyChanges() {
+            if (!confirm('Tem certeza que deseja salvar as alterações nos links?')) {
+                return;
+            }
+
+            const updatedLinks = [];
+            const editCards = document.querySelectorAll('.edit-mode');
+
+            editCards.forEach((card, index) => {
+                const textInput = card.querySelector('.link-text');
+                const urlInput = card.querySelector('.link-url');
+
+                if (textInput && urlInput && urlInput.value.trim()) {
+                    const originalLink = currentLinks[index];
+                    updatedLinks.push({
+                        url: urlInput.value.trim(),
+                        text: textInput.value.trim() || '[sem texto]',
+                        title: originalLink.title || '',
+                        isExternal: !urlInput.value.startsWith(window.location.origin) && urlInput.value.startsWith('http')
+                    });
+                }
+            });
+
+            try {
+                const response = await fetch('/update-links', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        filename: currentFilename,
+                        links: updatedLinks
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    showAlert(`Links atualizados com sucesso! ${data.totalLinks} links salvos.`);
+                    toggleEditMode();
+                    setTimeout(() => {
+                        showLinks(updatedLinks, updatedLinks.length, currentFilename, currentOriginalUrl);
+                    }, 1000);
+                } else {
+                    const error = await response.json();
+                    showAlert(error.error || 'Erro ao atualizar links', 'danger');
+                }
+            } catch (error) {
+                showAlert('Erro ao salvar alterações', 'danger');
+            }
+        }
+
+        function cancelEdit() {
+            const viewModes = document.querySelectorAll('.view-mode');
+            const editModes = document.querySelectorAll('.edit-mode');
+            const editBar = document.getElementById('editBar');
+            const editLinksBtn = document.getElementById('editLinksBtn');
+
+            viewModes.forEach(mode => mode.style.display = 'block');
+            editModes.forEach(mode => mode.style.display = 'none');
+            editLinksBtn.style.display = 'inline-block';
+            editBar.style.display = 'none';
+            isEditMode = false;
+        }
+
+        function removeLink(index) {
+            if (confirm('Tem certeza que deseja remover este link?')) {
+                const card = document.querySelector(`[data-index="${index}"]`);
+                if (card) {
+                    card.remove();
+                }
+
+                const remainingCards = document.querySelectorAll('[data-index]');
+                remainingCards.forEach((card, newIndex) => {
+                    card.setAttribute('data-index', newIndex);
+                    const removeBtn = card.querySelector('button[onclick*="removeLink"]');
+                    if (removeBtn) {
+                        removeBtn.setAttribute('onclick', `removeLink(${newIndex})`);
+                    }
+                });
+            }
+        }
+
+        function updateDashboardStats(incrementPublished = 0, incrementDrafts = 0) {
+            const statPublished = document.getElementById('statPublished');
+            const statDrafts = document.getElementById('statDrafts');
+            
+            if (statPublished) {
+                const currentPublished = parseInt(statPublished.textContent) || 0;
+                statPublished.textContent = Math.max(0, currentPublished + incrementPublished);
+            }
+            
+            if (statDrafts) {
+                const currentDrafts = parseInt(statDrafts.textContent) || 0;
+                statDrafts.textContent = Math.max(0, currentDrafts + incrementDrafts);
+            }
+        }
+
+        async function togglePublishStatus(filename, isPublishing) {
+            const switchInput = document.getElementById(`switch_${filename}`);
+            const label = document.getElementById(`label_${filename}`);
+            const publicUrlDiv = document.getElementById(`publicUrl_${filename}`);
+            
+            // Desabilitar temporariamente
+            switchInput.disabled = true;
+
+            try {
+                if (isPublishing) {
+                    const response = await fetch(`/publish/${filename}`, {
+                        method: 'POST'
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        const fullUrl = window.location.origin + data.publicUrl;
+                        showAlert(`Clone publicado com sucesso! URL: ${fullUrl}`, 'success');
+                        
+                        // Atualizar label
+                        label.textContent = 'Publicado';
+                        label.className = 'status-label published';
+                        
+                        // Atualizar URL pública (remover strikethrough)
+                        publicUrlDiv.innerHTML = `
+                            <small class="text-muted">
+                                <i class="fas fa-link"></i> URL Pública:
+                                <a href="${data.publicUrl}" target="_blank" class="text-decoration-none">
+                                    ${data.publicUrl}
+                                </a>
+                            </small>
+                        `;
+                        
+                        // Atualizar estatísticas no dashboard dinamicamente
+                        updateDashboardStats(1, -1); // Incrementa publicados, decrementa rascunhos
+                    } else {
+                        showAlert(data.error || 'Erro ao publicar clone', 'danger');
+                        switchInput.checked = false;
+                    }
+                } else {
+                    const response = await fetch(`/publish/${filename}`, {
+                        method: 'DELETE'
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        showAlert('Clone movido para Rascunho com sucesso!', 'success');
+                        
+                        // Atualizar label
+                        label.textContent = 'Rascunho';
+                        label.className = 'status-label draft';
+                        
+                        // Adicionar strikethrough na URL pública
+                        if (data.publicUrl) {
+                            publicUrlDiv.innerHTML = `
+                                <small class="text-muted strikethrough">
+                                    <i class="fas fa-link"></i> URL Pública:
+                                    <span>${data.publicUrl}</span>
+                                </small>
+                            `;
+                        } else {
+                            publicUrlDiv.innerHTML = `
+                                <small class="text-muted strikethrough">
+                                    <i class="fas fa-link"></i> URL Pública:
+                                    <span>/p/---</span>
+                                </small>
+                            `;
+                        }
+                        
+                        // Atualizar estatísticas no dashboard dinamicamente
+                        updateDashboardStats(-1, 1); // Decrementa publicados, incrementa rascunhos
+                    } else {
+                        showAlert(data.error || 'Erro ao despublicar', 'danger');
+                        switchInput.checked = true;
+                    }
+                }
+            } catch (error) {
+                showAlert('Erro ao alterar status', 'danger');
+                switchInput.checked = !isPublishing;
+            } finally {
+                switchInput.disabled = false;
+            }
+        }
+
+        // Progress Modal Functions
+        function showProgress() {
+            const modal = document.getElementById('progressModal');
+            modal.style.display = 'flex';
+            
+            // Reset all steps
+            for (let i = 1; i <= 4; i++) {
+                const step = document.getElementById(`step${i}`);
+                step.classList.remove('active', 'completed');
+            }
+        }
+
+        function hideProgress() {
+            const modal = document.getElementById('progressModal');
+            modal.style.display = 'none';
+        }
+
+        function updateProgressStep(stepNum) {
+            const step = document.getElementById(`step${stepNum}`);
+            if (step) {
+                step.classList.add('active');
+                
+                // Mark previous steps as completed
+                for (let i = 1; i < stepNum; i++) {
+                    const prevStep = document.getElementById(`step${i}`);
+                    if (prevStep) {
+                        prevStep.classList.remove('active');
+                        prevStep.classList.add('completed');
+                    }
+                }
+            }
+        }
+
+        // Success Dialog Functions
+        function showSuccessDialog(data) {
+            window.lastCloneData = data;
+            const modal = document.getElementById('successModal');
+            modal.style.display = 'flex';
+        }
+
+        function hideSuccessDialog() {
+            const modal = document.getElementById('successModal');
+            modal.style.display = 'none';
+        }
+
+        function goToDashboard() {
+            hideSuccessDialog();
+            location.reload();
+        }
+
+        function configureLinks() {
+            hideSuccessDialog();
+            if (window.lastCloneData && window.lastCloneData.links && window.lastCloneData.links.length > 0) {
+                showLinks(
+                    window.lastCloneData.links, 
+                    window.lastCloneData.totalLinks, 
+                    window.lastCloneData.filename, 
+                    window.lastCloneData.originalUrl
+                );
+            } else {
+                showAlert('Nenhum link encontrado para configurar', 'warning');
+                setTimeout(() => location.reload(), 2000);
+            }
+        }
+
+        // Form submission
+        copyForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const url = document.getElementById('url').value;
+            const spinner = submitBtn.querySelector('.spinner-border');
+            const btnText = submitBtn;
+
+            submitBtn.disabled = true;
+            showProgress();
+            updateProgressStep(1);
+
+            try {
+                // Simulate progress steps
+                setTimeout(() => updateProgressStep(2), 500);
+                
+                const response = await fetch('/copy', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ url })
+                });
+
+                setTimeout(() => updateProgressStep(3), 1000);
+                setTimeout(() => updateProgressStep(4), 1500);
+
+                const data = await response.json();
+
+                setTimeout(() => {
+                    hideProgress();
+
+                    if (response.ok) {
+                        document.getElementById('url').value = '';
+                        showSuccessDialog(data);
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i class="fas fa-clone me-2"></i> Copiar HTML';
+                    } else {
+                        showAlert(data.error || 'Erro ao copiar HTML', 'danger');
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i class="fas fa-clone me-2"></i> Copiar HTML';
+                    }
+                }, 2000);
+            } catch (error) {
+                hideProgress();
+                showAlert('Erro de conexão', 'danger');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-clone me-2"></i> Copiar HTML';
+            }
+        });
+    </script>
+</body>
+</html>
