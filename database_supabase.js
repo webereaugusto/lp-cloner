@@ -1,0 +1,395 @@
+const { createClient } = require('@supabase/supabase-js');
+
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+
+// Não lançar erro aqui, apenas avisar. O dotenv já foi carregado em server.js
+if (!supabaseUrl || !supabaseKey) {
+    console.warn('⚠️  SUPABASE_URL ou SUPABASE_KEY não configuradas');
+}
+
+const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
+
+// Função de inicialização (não precisa criar tabelas, mas pode validar conexão)
+async function initDatabase() {
+    if (!supabase) {
+        throw new Error('Supabase não está configurado. Verifique SUPABASE_URL e SUPABASE_KEY.');
+    }
+    
+    try {
+        const { data, error } = await supabase
+            .from('users')
+            .select('count', { count: 'exact', head: true });
+        
+        if (error) {
+            console.error('Erro ao conectar com Supabase:', error.message);
+            throw error;
+        }
+        
+        console.log('✅ Conectado ao Supabase com sucesso');
+        return Promise.resolve();
+    } catch (error) {
+        console.error('❌ Erro ao inicializar banco de dados:', error);
+        throw error;
+    }
+}
+
+// ========== FUNÇÕES DE USUÁRIO ==========
+
+async function createUser(email, hashedPassword) {
+    try {
+        const { data, error } = await supabase
+            .from('users')
+            .insert([
+                { email, password: hashedPassword }
+            ])
+            .select()
+            .single();
+
+        if (error) {
+            throw error;
+        }
+
+        return { id: data.id, email: data.email };
+    } catch (error) {
+        console.error('Erro ao criar usuário:', error);
+        throw error;
+    }
+}
+
+async function getUserByEmail(email) {
+    try {
+        const { data, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('email', email)
+            .single();
+
+        if (error) {
+            if (error.code === 'PGRST116') {
+                return null; // Usuário não encontrado
+            }
+            throw error;
+        }
+
+        return data;
+    } catch (error) {
+        console.error('Erro ao buscar usuário por email:', error);
+        throw error;
+    }
+}
+
+async function getUserById(id) {
+    try {
+        const { data, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (error) {
+            if (error.code === 'PGRST116') {
+                return null;
+            }
+            throw error;
+        }
+
+        return data;
+    } catch (error) {
+        console.error('Erro ao buscar usuário por ID:', error);
+        throw error;
+    }
+}
+
+// ========== FUNÇÕES DE CLONES ==========
+
+async function createClone(userId, filename, originalUrl, fileSize, totalLinks) {
+    try {
+        const { data, error } = await supabase
+            .from('clones')
+            .insert([
+                { 
+                    user_id: userId, 
+                    filename, 
+                    original_url: originalUrl, 
+                    file_size: fileSize, 
+                    total_links: totalLinks 
+                }
+            ])
+            .select()
+            .single();
+
+        if (error) {
+            throw error;
+        }
+
+        return { id: data.id, filename, originalUrl };
+    } catch (error) {
+        console.error('Erro ao criar clone:', error);
+        throw error;
+    }
+}
+
+async function getClonesByUserId(userId) {
+    try {
+        const { data, error } = await supabase
+            .from('clones')
+            .select(`
+                *,
+                publications (
+                    friendly_id,
+                    public_url
+                )
+            `)
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            throw error;
+        }
+
+        // Formatar dados para manter compatibilidade com o código existente
+        return data.map(clone => ({
+            ...clone,
+            friendly_id: clone.publications && clone.publications.length > 0 ? clone.publications[0].friendly_id : null,
+            public_url: clone.publications && clone.publications.length > 0 ? clone.publications[0].public_url : null
+        }));
+    } catch (error) {
+        console.error('Erro ao buscar clones:', error);
+        throw error;
+    }
+}
+
+async function getCloneById(cloneId, userId) {
+    try {
+        const { data, error } = await supabase
+            .from('clones')
+            .select('*')
+            .eq('id', cloneId)
+            .eq('user_id', userId)
+            .single();
+
+        if (error) {
+            if (error.code === 'PGRST116') {
+                return null;
+            }
+            throw error;
+        }
+
+        return data;
+    } catch (error) {
+        console.error('Erro ao buscar clone por ID:', error);
+        throw error;
+    }
+}
+
+async function getCloneByFilename(filename, userId) {
+    try {
+        const { data, error } = await supabase
+            .from('clones')
+            .select('*')
+            .eq('filename', filename)
+            .eq('user_id', userId)
+            .single();
+
+        if (error) {
+            if (error.code === 'PGRST116') {
+                return null;
+            }
+            throw error;
+        }
+
+        return data;
+    } catch (error) {
+        console.error('Erro ao buscar clone por filename:', error);
+        throw error;
+    }
+}
+
+async function deleteClone(filename, userId) {
+    try {
+        const { data, error } = await supabase
+            .from('clones')
+            .delete()
+            .eq('filename', filename)
+            .eq('user_id', userId)
+            .select();
+
+        if (error) {
+            throw error;
+        }
+
+        return { deleted: data && data.length > 0 };
+    } catch (error) {
+        console.error('Erro ao deletar clone:', error);
+        throw error;
+    }
+}
+
+// ========== FUNÇÕES DE PUBLICAÇÕES ==========
+
+async function createPublication(cloneId, friendlyId, publicUrl) {
+    try {
+        const { data, error } = await supabase
+            .from('publications')
+            .insert([
+                { clone_id: cloneId, friendly_id: friendlyId, public_url: publicUrl }
+            ])
+            .select()
+            .single();
+
+        if (error) {
+            throw error;
+        }
+
+        return { id: data.id, friendlyId, publicUrl };
+    } catch (error) {
+        console.error('Erro ao criar publicação:', error);
+        throw error;
+    }
+}
+
+async function getPublicationByFriendlyId(friendlyId) {
+    try {
+        const { data, error } = await supabase
+            .from('publications')
+            .select(`
+                *,
+                clones!inner (
+                    filename,
+                    user_id
+                )
+            `)
+            .eq('friendly_id', friendlyId)
+            .single();
+
+        if (error) {
+            if (error.code === 'PGRST116') {
+                return null;
+            }
+            throw error;
+        }
+
+        // Formatar para manter compatibilidade
+        return {
+            ...data,
+            filename: data.clones.filename,
+            user_id: data.clones.user_id
+        };
+    } catch (error) {
+        console.error('Erro ao buscar publicação por friendly_id:', error);
+        throw error;
+    }
+}
+
+async function getPublicationByCloneId(cloneId) {
+    try {
+        const { data, error } = await supabase
+            .from('publications')
+            .select('*')
+            .eq('clone_id', cloneId)
+            .limit(1)
+            .single();
+
+        if (error) {
+            if (error.code === 'PGRST116') {
+                return null;
+            }
+            throw error;
+        }
+
+        return data;
+    } catch (error) {
+        console.error('Erro ao buscar publicação por clone_id:', error);
+        throw error;
+    }
+}
+
+async function deletePublicationByClone(cloneId, userId) {
+    try {
+        // Primeiro verificar se o clone pertence ao usuário
+        const clone = await getCloneById(cloneId, userId);
+        if (!clone) {
+            return { deleted: false };
+        }
+
+        // Deletar publicação
+        const { data, error } = await supabase
+            .from('publications')
+            .delete()
+            .eq('clone_id', cloneId)
+            .select();
+
+        if (error) {
+            throw error;
+        }
+
+        return { deleted: data && data.length > 0 };
+    } catch (error) {
+        console.error('Erro ao deletar publicação:', error);
+        throw error;
+    }
+}
+
+// ========== FUNÇÕES DE ESTATÍSTICAS ==========
+
+async function getStatsByUserId(userId) {
+    try {
+        // Buscar clones com suas publicações
+        const { data, error } = await supabase
+            .from('clones')
+            .select(`
+                id,
+                total_links,
+                publications!left (id)
+            `)
+            .eq('user_id', userId);
+
+        if (error) {
+            throw error;
+        }
+
+        // Calcular estatísticas
+        let totalFiles = 0;
+        let published = 0;
+        let drafts = 0;
+        let totalLinks = 0;
+
+        if (data && data.length > 0) {
+            totalFiles = data.length;
+            totalLinks = data.reduce((sum, clone) => sum + (clone.total_links || 0), 0);
+            
+            data.forEach(clone => {
+                if (clone.publications && clone.publications.length > 0) {
+                    published++;
+                } else {
+                    drafts++;
+                }
+            });
+        }
+
+        return { totalFiles, published, drafts, totalLinks };
+    } catch (error) {
+        console.error('Erro ao buscar estatísticas:', error);
+        throw error;
+    }
+}
+
+module.exports = {
+    supabase,
+    initDatabase,
+    createUser,
+    getUserByEmail,
+    getUserById,
+    createClone,
+    getClonesByUserId,
+    getCloneById,
+    getCloneByFilename,
+    deleteClone,
+    createPublication,
+    getPublicationByFriendlyId,
+    getPublicationByCloneId,
+    deletePublicationByClone,
+    getStatsByUserId
+};
+

@@ -1,5 +1,9 @@
+require('dotenv').config();
 const bcrypt = require('bcrypt');
-const { createUser, getUserByEmail } = require('./database');
+
+// Escolher banco de dados baseado em variável de ambiente
+const useSupabase = process.env.USE_SUPABASE === 'true' || process.env.USE_SUPABASE === '1';
+const { createUser, getUserByEmail } = useSupabase ? require('./database_supabase') : require('./database');
 
 // Middleware para verificar autenticação
 function requireAuth(req, res, next) {

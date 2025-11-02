@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
 const SQLiteStore = require('connect-sqlite3')(session);
@@ -6,6 +7,11 @@ const fs = require('fs');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const cheerio = require('cheerio');
+
+// Escolher banco de dados baseado em variável de ambiente
+const useSupabase = process.env.USE_SUPABASE === 'true' || process.env.USE_SUPABASE === '1';
+console.log(`🔌 Usando banco de dados: ${useSupabase ? 'Supabase' : 'SQLite'}`);
+const db = useSupabase ? require('./database_supabase') : require('./database');
 
 const { 
     initDatabase,
@@ -19,7 +25,8 @@ const {
     deletePublicationByClone,
     getStatsByUserId,
     getUserById
-} = require('./database');
+} = db;
+
 const { requireAuth, register, login } = require('./auth');
 
 const app = express();
