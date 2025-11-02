@@ -288,7 +288,8 @@ app.get('/download/:filename', requireAuth, (req, res) => {
         return res.status(404).send('Arquivo não encontrado');
     }
 
-    res.download(filePath, filename);
+    // Sempre baixar como index.html
+    res.download(filePath, 'index.html');
 });
 
 // Metadados
