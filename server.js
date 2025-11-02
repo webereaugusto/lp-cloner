@@ -8,6 +8,7 @@ const { v4: uuidv4 } = require('uuid');
 const cheerio = require('cheerio');
 
 const { 
+    initDatabase,
     createClone, 
     getClonesByUserId, 
     getCloneByFilename,
@@ -459,7 +460,16 @@ app.delete('/publish/:filename', requireAuth, async (req, res) => {
     }
 });
 
-// Iniciar servidor
-app.listen(PORT, () => {
-    console.log(`Servidor rodando em http://localhost:${PORT}`);
-});
+// Inicializar banco de dados e iniciar servidor
+initDatabase()
+    .then(() => {
+        console.log('Banco de dados inicializado');
+        app.listen(PORT, '0.0.0.0', () => {
+            console.log(`Servidor rodando na porta ${PORT}`);
+            console.log(`Ambiente: ${process.env.NODE_ENV || 'development'}`);
+        });
+    })
+    .catch(err => {
+        console.error('Erro ao inicializar banco de dados:', err);
+        process.exit(1);
+    });

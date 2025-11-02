@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: lp-cloner
+    env: node
+    plan: starter
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SESSION_SECRET
+        generateValue: true
+    healthCheckPath: /
+    autoDeploy: true
+
