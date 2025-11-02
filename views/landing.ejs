@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LP Cloner - Clone e Gerencie suas Páginas HTML</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #0f1115;
+            --text-color: #e9ecef;
+            --card-bg: #1a1f29;
+            --card-border: #2b3340;
+            --muted: #a1a7b3;
+            --primary: #66b2ff;
+            --secondary: #667eea;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--card-border);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 6rem 2rem;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--muted);
+            max-width: 700px;
+            margin: 0 auto 2rem;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary-large {
+            padding: 1rem 2.5rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: all 0.3s;
+        }
+
+        .btn-primary-large:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+
+        .btn-outline-large {
+            padding: 1rem 2.5rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 12px;
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: all 0.3s;
+        }
+
+        .btn-outline-large:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 4rem 2rem;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            color: var(--muted);
+            font-size: 1.1rem;
+            margin-bottom: 4rem;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .feature-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.3);
+            border-color: var(--primary);
+        }
+
+        .feature-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 12px;
+            background: rgba(102, 178, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            font-size: 1.75rem;
+            color: var(--primary);
+        }
+
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .feature-text {
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        /* Use Cases Section */
+        .use-cases {
+            padding: 4rem 2rem;
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .use-cases-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .use-case-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .use-case-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transform: scaleY(0);
+            transition: transform 0.3s;
+        }
+
+        .use-case-card:hover::before {
+            transform: scaleY(1);
+        }
+
+        .use-case-card:hover {
+            transform: translateX(8px);
+            border-color: var(--primary);
+        }
+
+        .use-case-icon {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .use-case-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        .use-case-text {
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            padding: 6rem 2rem;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        }
+
+        .cta-box {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            padding: 4rem 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--card-bg);
+            border-top: 1px solid var(--card-border);
+            padding: 2rem;
+            text-align: center;
+            color: var(--muted);
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            .hero p {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container-fluid d-flex justify-content-between align-items-center">
+            <a href="/" class="navbar-brand">
+                <i class="fas fa-copy"></i>
+                LP Cloner
+            </a>
+            <div>
+                <a href="/login" class="btn btn-outline-large">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Entrar
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>Clone e Gerencie Páginas HTML com Facilidade</h1>
+            <p>
+                Crie cópias perfeitas de qualquer página web, edite links, faça testes A/B 
+                e publique suas versões em URLs amigáveis. Tudo em um só lugar.
+            </p>
+            <div class="cta-buttons">
+                <a href="/login" class="btn-primary-large">
+                    <i class="fas fa-rocket"></i>
+                    Começar Agora
+                </a>
+                <a href="#casos-de-uso" class="btn-outline-large">
+                    <i class="fas fa-info-circle"></i>
+                    Saiba Mais
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <div class="container">
+            <h2 class="section-title">Recursos Principais</h2>
+            <p class="section-subtitle">Tudo que você precisa para clonar e gerenciar suas páginas</p>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-copy"></i>
+                    </div>
+                    <h3 class="feature-title">Clone Rápido</h3>
+                    <p class="feature-text">
+                        Copie qualquer página HTML com um único clique. Mantenha todo o design e estrutura original intactos.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-link"></i>
+                    </div>
+                    <h3 class="feature-title">Edição de Links</h3>
+                    <p class="feature-text">
+                        Identifique e edite todos os links da página de forma visual e intuitiva. Modifique URLs sem editar código.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                    <h3 class="feature-title">URLs Amigáveis</h3>
+                    <p class="feature-text">
+                        Publique suas versões com URLs curtas e amigáveis. Ideal para compartilhamento e testes.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-download"></i>
+                    </div>
+                    <h3 class="feature-title">Download Imediato</h3>
+                    <p class="feature-text">
+                        Baixe seus clones em HTML a qualquer momento. Use offline ou em outros projetos.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-sync-alt"></i>
+                    </div>
+                    <h3 class="feature-title">Gestão Inteligente</h3>
+                    <p class="feature-text">
+                        Organize seus clones em um dashboard moderno. Veja estatísticas e gerencie tudo em um só lugar.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3 class="feature-title">Seguro e Privado</h3>
+                    <p class="feature-text">
+                        Seus clones ficam isolados e privados. Controle total sobre publicação e acesso.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Use Cases Section -->
+    <section class="use-cases" id="casos-de-uso">
+        <div class="container">
+            <h2 class="section-title">Casos de Uso</h2>
+            <p class="section-subtitle">Veja como o LP Cloner pode ajudar no seu negócio</p>
+            
+            <div class="use-cases-grid">
+                <div class="use-case-card">
+                    <div class="use-case-icon">
+                        <i class="fas fa-handshake"></i>
+                    </div>
+                    <h3 class="use-case-title">Programa de Afiliados</h3>
+                    <p class="use-case-text">
+                        Clone landing pages de produtos e substitua os links de afiliado pelos seus. 
+                        Crie versões personalizadas para diferentes canais de marketing mantendo o design original.
+                    </p>
+                </div>
+
+                <div class="use-case-card">
+                    <div class="use-case-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3 class="use-case-title">Testes A/B de Campanhas</h3>
+                    <p class="use-case-text">
+                        Teste diferentes versões de landing pages facilmente. Clone, modifique links 
+                        e compare resultados sem precisar refazer todo o trabalho de design.
+                    </p>
+                </div>
+
+                <div class="use-case-card">
+                    <div class="use-case-icon">
+                        <i class="fas fa-bullhorn"></i>
+                    </div>
+                    <h3 class="use-case-title">Links de Rastreamento</h3>
+                    <p class="use-case-text">
+                        Adicione UTMs e links de rastreamento em páginas existentes. Ideal para 
+                        campanhas de email marketing e redes sociais.
+                    </p>
+                </div>
+
+                <div class="use-case-card">
+                    <div class="use-case-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3 class="use-case-title">Versões Personalizadas</h3>
+                    <p class="use-case-text">
+                        Crie versões únicas de páginas para diferentes públicos ou parceiros. 
+                        Mantenha a consistência visual enquanto personaliza o conteúdo.
+                    </p>
+                </div>
+
+                <div class="use-case-card">
+                    <div class="use-case-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h3 class="use-case-title">Testes de Performance</h3>
+                    <p class="use-case-text">
+                        Clone páginas e teste diferentes configurações de links e CTAs. 
+                        Identifique quais versões convertem melhor sem perder a página original.
+                    </p>
+                </div>
+
+                <div class="use-case-card">
+                    <div class="use-case-icon">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <h3 class="use-case-title">Backup e Versão</h3>
+                    <p class="use-case-text">
+                        Mantenha versões de suas páginas antes de fazer mudanças. 
+                        Clone, edite e tenha um histórico completo das modificações.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-box">
+                <h2 style="font-size: 2.5rem; font-weight: 700; margin-bottom: 1.5rem;">
+                    Pronto para começar?
+                </h2>
+                <p style="font-size: 1.2rem; color: var(--muted); margin-bottom: 2.5rem;">
+                    Crie sua conta gratuitamente e comece a clonar suas primeiras páginas em minutos.
+                </p>
+                <a href="/login" class="btn-primary-large" style="font-size: 1.3rem; padding: 1.25rem 3rem;">
+                    <i class="fas fa-user-plus"></i>
+                    Criar Conta Gratuita
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 LP Cloner. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+</body>
+</html>
+

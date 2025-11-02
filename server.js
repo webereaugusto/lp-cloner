@@ -1,9 +1,25 @@
 const express = require('express');
+const session = require('express-session');
+const SQLiteStore = require('connect-sqlite3')(session);
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const cheerio = require('cheerio');
+
+const { 
+    createClone, 
+    getClonesByUserId, 
+    getCloneByFilename,
+    deleteClone,
+    createPublication,
+    getPublicationByFriendlyId,
+    getPublicationByCloneId,
+    deletePublicationByClone,
+    getStatsByUserId,
+    getUserById
+} = require('./database');
+const { requireAuth, register, login } = require('./auth');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -15,191 +31,145 @@ app.use(express.static('public'));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Criar diretório para salvar HTML se não existir
-const htmlDir = path.join(__dirname, 'html_copies');
-if (!fs.existsSync(htmlDir)) {
-    fs.mkdirSync(htmlDir);
-}
-
-// Arquivo para mapear publicações
-const publicationsFile = path.join(__dirname, 'publications.json');
-let publications = {};
-
-// Carregar publicações existentes
-if (fs.existsSync(publicationsFile)) {
-    try {
-        publications = JSON.parse(fs.readFileSync(publicationsFile, 'utf8'));
-    } catch (e) {
-        publications = {};
+// Configurar sessões
+app.use(session({
+    store: new SQLiteStore({ db: 'sessions.db' }),
+    secret: process.env.SESSION_SECRET || 'lp-cloner-secret-key-change-in-production',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { 
+        secure: process.env.NODE_ENV === 'production',
+        httpOnly: true,
+        maxAge: 30 * 24 * 60 * 60 * 1000 // 30 dias
     }
+}));
+
+// Middleware para passar userId para views
+app.use((req, res, next) => {
+    res.locals.userId = req.session?.userId || null;
+    res.locals.userEmail = req.session?.userEmail || null;
+    next();
+});
+
+// Criar diretório para salvar HTML por usuário
+function getUserHtmlDir(userId) {
+    const userDir = path.join(__dirname, 'html_copies', `user_${userId}`);
+    if (!fs.existsSync(userDir)) {
+        fs.mkdirSync(userDir, { recursive: true });
+    }
+    return userDir;
 }
 
-// Função para salvar publicações
-function savePublications() {
-    fs.writeFileSync(publicationsFile, JSON.stringify(publications, null, 2));
-}
+// ========== ROTAS DE AUTENTICAÇÃO ==========
 
-// Rota principal - formulário
-app.get('/', (req, res) => {
-    // Listar arquivos salvos
-    fs.readdir(htmlDir, (err, files) => {
-        if (err) {
-            files = [];
-        }
+app.get('/login', (req, res) => {
+    if (req.session.userId) {
+        return res.redirect('/dashboard');
+    }
+    res.render('login');
+});
 
-        // Considerar apenas arquivos .html (esconder .json da lista)
-        const htmlFiles = files.filter(f => f.toLowerCase().endsWith('.html'));
+app.post('/auth/register', async (req, res) => {
+    const { email, password } = req.body;
+    if (!email || !password) {
+        return res.status(400).json({ error: 'Email e senha são obrigatórios' });
+    }
 
-        // Obter informações dos arquivos
-        const fileInfos = htmlFiles.map(file => {
-            const filePath = path.join(htmlDir, file);
-            const stats = fs.statSync(filePath);
-            // Tentar ler URL original do JSON de metadados correspondente
-            const metaPath = path.join(htmlDir, `${file}.json`);
-            let originalUrl = null;
-            try {
-                if (fs.existsSync(metaPath)) {
-                    const meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
-                    originalUrl = meta.originalUrl || null;
-                }
-            } catch (_) {
-                originalUrl = null;
-            }
+    const result = await register(email, password);
+    if (result.success) {
+        res.json({ success: true, message: 'Conta criada com sucesso' });
+    } else {
+        res.status(400).json({ error: result.error });
+    }
+});
 
-            // Verificar se há publicação para este arquivo
-            const existingPub = Object.entries(publications).find(
-                ([id, pub]) => pub.filename === file
-            );
+app.post('/auth/login', async (req, res) => {
+    const { email, password } = req.body;
+    if (!email || !password) {
+        return res.status(400).json({ error: 'Email e senha são obrigatórios' });
+    }
 
-            let publishInfo = null;
-            if (existingPub) {
-                publishInfo = {
-                    publicUrl: `/p/${existingPub[0]}`,
-                    friendlyId: existingPub[0]
-                };
-            }
+    const result = await login(email, password);
+    if (result.success) {
+        req.session.userId = result.user.id;
+        req.session.userEmail = result.user.email;
+        res.json({ success: true });
+    } else {
+        res.status(401).json({ error: result.error });
+    }
+});
 
-            return {
-                name: file,
-                size: stats.size,
-                created: stats.birthtime,
-                url: `/html/${file}`,
-                originalUrl,
-                publishInfo
-            };
-        }).sort((a, b) => b.created - a.created); // Ordenar por data decrescente
-
-        // Calcular estatísticas
-        let totalLinks = 0;
-        fileInfos.forEach(file => {
-            const metaPath = path.join(htmlDir, `${file.name}.json`);
-            try {
-                if (fs.existsSync(metaPath)) {
-                    const meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
-                    totalLinks += meta.totalLinks || 0;
-                }
-            } catch (_) {}
-        });
-
-        const stats = {
-            totalFiles: fileInfos.length,
-            published: fileInfos.filter(f => f.publishInfo).length,
-            drafts: fileInfos.filter(f => !f.publishInfo).length,
-            totalLinks: totalLinks
-        };
-
-        res.render('index', { files: fileInfos, stats });
+app.get('/auth/logout', (req, res) => {
+    req.session.destroy(() => {
+        res.redirect('/login');
     });
 });
 
-// Rota para processar a modificação dos links
-app.post('/modify-links', async (req, res) => {
-    const { filename, linkChanges } = req.body;
+// ========== ROTAS PRINCIPAIS ==========
 
-    if (!filename || !linkChanges) {
-        return res.status(400).json({ error: 'Nome do arquivo e mudanças são obrigatórios' });
+// Landing page (pública)
+app.get('/', (req, res) => {
+    if (req.session.userId) {
+        return res.redirect('/dashboard');
     }
+    res.render('landing');
+});
 
+// Dashboard (protegida)
+app.get('/dashboard', requireAuth, async (req, res) => {
     try {
-        // Ler arquivo HTML original
-        const htmlPath = path.join(htmlDir, filename);
-        if (!fs.existsSync(htmlPath)) {
-            return res.status(404).json({ error: 'Arquivo HTML não encontrado' });
-        }
+        const userId = req.session.userId;
+        const clones = await getClonesByUserId(userId);
+        const stats = await getStatsByUserId(userId);
 
-        let htmlContent = fs.readFileSync(htmlPath, 'utf8');
+        // Formatando dados para a view
+        const fileInfos = clones.map(clone => ({
+            name: clone.filename,
+            size: clone.file_size || 0,
+            created: new Date(clone.created_at),
+            url: `/html/${clone.filename}`,
+            originalUrl: clone.original_url,
+            publishInfo: clone.friendly_id ? {
+                publicUrl: clone.public_url,
+                friendlyId: clone.friendly_id
+            } : null
+        })).sort((a, b) => b.created - a.created);
 
-        // Aplicar mudanças aos links
-        let modifiedCount = 0;
-        Object.entries(linkChanges).forEach(([oldUrl, newUrl]) => {
-            if (oldUrl !== newUrl) {
-                // Escapar caracteres especiais para regex
-                const escapedOldUrl = oldUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                const regex = new RegExp(`href=["']${escapedOldUrl}["']`, 'g');
-                const matches = htmlContent.match(regex);
-
-                if (matches) {
-                    modifiedCount += matches.length;
-                    htmlContent = htmlContent.replace(regex, `href="${newUrl}"`);
-                }
+        res.render('index', { 
+            files: fileInfos, 
+            stats: {
+                totalFiles: stats.totalFiles || 0,
+                published: stats.published || 0,
+                drafts: stats.drafts || 0,
+                totalLinks: stats.totalLinks || 0
             }
         });
-
-        // Gerar novo nome de arquivo
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-        const id = uuidv4().substring(0, 8);
-        const baseName = filename.replace('.html', '');
-        const modifiedFilename = `${baseName}_modified_${timestamp}_${id}.html`;
-
-        // Salvar HTML modificado
-        const modifiedPath = path.join(htmlDir, modifiedFilename);
-        fs.writeFileSync(modifiedPath, htmlContent);
-
-        // Salvar metadados da modificação
-        const metadataPath = path.join(htmlDir, `${modifiedFilename}.json`);
-        const metadata = {
-            originalFile: filename,
-            modifiedAt: new Date().toISOString(),
-            totalChanges: modifiedCount,
-            linkChanges: linkChanges
-        };
-        fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2));
-
-        res.json({
-            success: true,
-            filename: modifiedFilename,
-            modifiedCount: modifiedCount,
-            url: `/html/${modifiedFilename}`,
-            metadataUrl: `/metadata/${modifiedFilename}`
-        });
-
     } catch (error) {
-        console.error('Erro ao modificar links:', error);
-        res.status(500).json({ error: 'Erro ao modificar links' });
+        console.error('Erro ao carregar dashboard:', error);
+        res.status(500).send('Erro ao carregar dashboard');
     }
 });
 
-// Rota para processar a URL e salvar HTML
-app.post('/copy', async (req, res) => {
+// Rota para copiar URL
+app.post('/copy', requireAuth, async (req, res) => {
     const { url } = req.body;
+    const userId = req.session.userId;
 
     if (!url) {
         return res.status(400).json({ error: 'URL é obrigatória' });
     }
 
     try {
-        // Validar URL básica
+        // Validar URL
         new URL(url);
 
-        // Fazer requisição para a URL
+        // Fazer requisição
         const response = await axios.get(url, {
-            timeout: 10000, // 10 segundos timeout
-            headers: {
-                'User-Agent': 'HTML-Copier/1.0'
-            }
+            timeout: 10000,
+            headers: { 'User-Agent': 'LP-Cloner/1.0' }
         });
 
-        // Analisar HTML e extrair links
+        // Extrair links
         const $ = cheerio.load(response.data);
         const links = [];
 
@@ -208,32 +178,32 @@ app.post('/copy', async (req, res) => {
             const text = $(element).text().trim() || '[sem texto]';
             const title = $(element).attr('title') || '';
 
-            // Resolver URLs relativas para absolutas
             let absoluteUrl;
             try {
                 absoluteUrl = new URL(href, url).href;
             } catch (e) {
-                absoluteUrl = href; // Manter como está se não conseguir resolver
+                absoluteUrl = href;
             }
 
             links.push({
                 url: absoluteUrl,
-                text: text.substring(0, 100), // Limitar tamanho do texto
+                text: text.substring(0, 100),
                 title: title,
-                isExternal: !absoluteUrl.startsWith(url.origin) && absoluteUrl.startsWith('http')
+                isExternal: !absoluteUrl.startsWith(new URL(url).origin) && absoluteUrl.startsWith('http')
             });
         });
 
-        // Gerar nome único para o arquivo
+        // Gerar filename único
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
         const id = uuidv4().substring(0, 8);
         const filename = `${timestamp}_${id}.html`;
 
-        // Salvar conteúdo HTML
+        // Salvar HTML
+        const htmlDir = getUserHtmlDir(userId);
         const filePath = path.join(htmlDir, filename);
         fs.writeFileSync(filePath, response.data);
 
-        // Salvar metadados dos links em um arquivo JSON separado
+        // Salvar metadados JSON
         const metadataPath = path.join(htmlDir, `${filename}.json`);
         const metadata = {
             originalUrl: url,
@@ -243,12 +213,15 @@ app.post('/copy', async (req, res) => {
         };
         fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2));
 
+        // Salvar no banco
+        await createClone(userId, filename, url, response.data.length, links.length);
+
         res.json({
             success: true,
             filename: filename,
             size: response.data.length,
             totalLinks: links.length,
-            links: links.slice(0, 10), // Retornar apenas os primeiros 10 links na resposta
+            links: links.slice(0, 10),
             url: `/html/${filename}`,
             metadataUrl: `/metadata/${filename}`,
             originalUrl: url
@@ -256,7 +229,6 @@ app.post('/copy', async (req, res) => {
 
     } catch (error) {
         console.error('Erro ao copiar HTML:', error.message);
-
         let errorMessage = 'Erro ao copiar o HTML';
         if (error.code === 'ENOTFOUND') {
             errorMessage = 'URL não encontrada';
@@ -265,14 +237,15 @@ app.post('/copy', async (req, res) => {
         } else if (error.response) {
             errorMessage = `Erro HTTP ${error.response.status}`;
         }
-
         res.status(500).json({ error: errorMessage });
     }
 });
 
-// Rota para servir arquivos HTML salvos
-app.get('/html/:filename', (req, res) => {
+// Servir HTML salvos
+app.get('/html/:filename', requireAuth, (req, res) => {
     const filename = req.params.filename;
+    const userId = req.session.userId;
+    const htmlDir = getUserHtmlDir(userId);
     const filePath = path.join(htmlDir, filename);
 
     if (fs.existsSync(filePath)) {
@@ -282,23 +255,25 @@ app.get('/html/:filename', (req, res) => {
     }
 });
 
-// Rota para download do arquivo HTML
-app.get('/download/:filename', (req, res) => {
+// Download
+app.get('/download/:filename', requireAuth, (req, res) => {
     const filename = req.params.filename;
+    const userId = req.session.userId;
+    const htmlDir = getUserHtmlDir(userId);
     const filePath = path.join(htmlDir, filename);
 
     if (!fs.existsSync(filePath)) {
         return res.status(404).send('Arquivo não encontrado');
     }
 
-    // Força download com nome do arquivo original
     res.download(filePath, filename);
 });
 
-// Rota para servir metadados dos links
-app.get('/metadata/:filename', (req, res) => {
-    let filename = req.params.filename;
-    // Normalizar: aceitar com ou sem .json
+// Metadados
+app.get('/metadata/:filename', requireAuth, (req, res) => {
+    const filename = req.params.filename;
+    const userId = req.session.userId;
+    const htmlDir = getUserHtmlDir(userId);
     const metadataFilename = filename.toLowerCase().endsWith('.json') ? filename : `${filename}.json`;
     const metadataPath = path.join(htmlDir, metadataFilename);
 
@@ -310,55 +285,52 @@ app.get('/metadata/:filename', (req, res) => {
     }
 });
 
-// Rota para atualizar links
-app.post('/update-links', (req, res) => {
+// Atualizar links
+app.post('/update-links', requireAuth, async (req, res) => {
     const { filename, links } = req.body;
+    const userId = req.session.userId;
 
     if (!filename || !links) {
         return res.status(400).json({ error: 'Filename e links são obrigatórios' });
     }
 
-    const metadataFilename = filename.toLowerCase().endsWith('.json') ? filename : `${filename}.json`;
-    const metadataPath = path.join(htmlDir, metadataFilename);
-
-    if (!fs.existsSync(metadataPath)) {
-        return res.status(404).json({ error: 'Arquivo de metadados não encontrado' });
+    // Verificar se clone pertence ao usuário
+    const clone = await getCloneByFilename(filename, userId);
+    if (!clone) {
+        return res.status(404).json({ error: 'Clone não encontrado' });
     }
 
     try {
-        // Ler metadados existentes
-        const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf8'));
+        const htmlDir = getUserHtmlDir(userId);
+        const metadataPath = path.join(htmlDir, `${filename}.json`);
+        
+        if (!fs.existsSync(metadataPath)) {
+            return res.status(404).json({ error: 'Arquivo de metadados não encontrado' });
+        }
 
-        // Atualizar links
+        // Atualizar metadados
+        const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf8'));
         metadata.links = links;
         metadata.totalLinks = links.length;
         metadata.updatedAt = new Date().toISOString();
-
-        // Salvar metadados atualizados
         fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2));
 
-        // Atualizar o arquivo HTML salvo, substituindo os hrefs na mesma ordem encontrada
+        // Atualizar HTML
         const htmlPath = path.join(htmlDir, filename);
         if (fs.existsSync(htmlPath)) {
-            try {
-                const htmlContent = fs.readFileSync(htmlPath, 'utf8');
-                const $ = cheerio.load(htmlContent);
+            const htmlContent = fs.readFileSync(htmlPath, 'utf8');
+            const $ = cheerio.load(htmlContent);
 
-                // Atualizar os hrefs dos anchors na ordem em que aparecem
-                $('a[href]').each((index, element) => {
-                    if (index < links.length) {
-                        const newHref = links[index].url;
-                        if (typeof newHref === 'string' && newHref.trim().length > 0) {
-                            $(element).attr('href', newHref.trim());
-                        }
+            $('a[href]').each((index, element) => {
+                if (index < links.length) {
+                    const newHref = links[index].url;
+                    if (typeof newHref === 'string' && newHref.trim().length > 0) {
+                        $(element).attr('href', newHref.trim());
                     }
-                });
+                }
+            });
 
-                const updatedHtml = $.html();
-                fs.writeFileSync(htmlPath, updatedHtml);
-            } catch (e) {
-                console.error('Falha ao atualizar HTML com novos links:', e);
-            }
+            fs.writeFileSync(htmlPath, $.html());
         }
 
         res.json({
@@ -373,138 +345,118 @@ app.post('/update-links', (req, res) => {
     }
 });
 
-// Rota para deletar arquivo
-app.delete('/html/:filename', (req, res) => {
+// Deletar clone
+app.delete('/html/:filename', requireAuth, async (req, res) => {
     const filename = req.params.filename;
-    const isJson = filename.toLowerCase().endsWith('.json');
-    const baseHtmlName = isJson ? filename.slice(0, -5) : filename; // remove .json
-    const filePath = path.join(htmlDir, baseHtmlName);
-    const metadataPath = path.join(htmlDir, `${baseHtmlName}.json`);
+    const userId = req.session.userId;
 
     try {
-        // Deletar arquivo HTML
+        const clone = await getCloneByFilename(filename, userId);
+        if (!clone) {
+            return res.status(404).json({ error: 'Clone não encontrado' });
+        }
+
+        // Deletar publicação se existir
+        await deletePublicationByClone(clone.id, userId);
+
+        // Deletar arquivos
+        const htmlDir = getUserHtmlDir(userId);
+        const filePath = path.join(htmlDir, filename);
+        const metadataPath = path.join(htmlDir, `${filename}.json`);
+
         if (fs.existsSync(filePath)) {
             fs.unlinkSync(filePath);
         }
-
-        // Deletar arquivo de metadados se existir
         if (fs.existsSync(metadataPath)) {
             fs.unlinkSync(metadataPath);
         }
 
+        // Deletar do banco
+        await deleteClone(filename, userId);
+
         res.json({ success: true });
     } catch (error) {
-        console.error('Erro ao deletar arquivos:', error);
-        res.status(500).json({ error: 'Erro ao deletar arquivos' });
+        console.error('Erro ao deletar:', error);
+        res.status(500).json({ error: 'Erro ao deletar clone' });
     }
 });
 
-// Rota para publicar arquivo HTML
-app.post('/publish/:filename', (req, res) => {
+// Publicar clone
+app.post('/publish/:filename', requireAuth, async (req, res) => {
     const filename = req.params.filename;
-    const filePath = path.join(htmlDir, filename);
-
-    if (!fs.existsSync(filePath)) {
-        return res.status(404).json({ error: 'Arquivo não encontrado' });
-    }
+    const userId = req.session.userId;
 
     try {
-        // Gerar ID amigável (8 caracteres alfanuméricos)
-        const friendlyId = uuidv4().substring(0, 8).replace(/-/g, '');
-
-        // Salvar mapeamento
-        publications[friendlyId] = {
-            filename: filename,
-            publishedAt: new Date().toISOString(),
-            originalUrl: null
-        };
-
-        // Tentar obter URL original do metadata
-        const metadataPath = path.join(htmlDir, `${filename}.json`);
-        if (fs.existsSync(metadataPath)) {
-            try {
-                const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf8'));
-                publications[friendlyId].originalUrl = metadata.originalUrl;
-            } catch (e) {
-                // Ignorar se não conseguir ler metadata
-            }
+        const clone = await getCloneByFilename(filename, userId);
+        if (!clone) {
+            return res.status(404).json({ error: 'Clone não encontrado' });
         }
 
-        savePublications();
+        const friendlyId = uuidv4().substring(0, 8).replace(/-/g, '');
+        const publicUrl = `/p/${friendlyId}`;
+
+        await createPublication(clone.id, friendlyId, publicUrl);
 
         res.json({
             success: true,
-            publicUrl: `/p/${friendlyId}`,
+            publicUrl: publicUrl,
             friendlyId: friendlyId
         });
-
     } catch (error) {
         console.error('Erro ao publicar:', error);
-        res.status(500).json({ error: 'Erro ao publicar arquivo' });
+        res.status(500).json({ error: 'Erro ao publicar clone' });
     }
 });
 
-// Rota para visualizar publicação
-app.get('/p/:id', (req, res) => {
-    const id = req.params.id;
+// Visualizar publicação pública (não requer auth)
+app.get('/p/:id', async (req, res) => {
+    const friendlyId = req.params.id;
 
-    if (!publications[id]) {
-        return res.status(404).send('Publicação não encontrada');
-    }
+    try {
+        const publication = await getPublicationByFriendlyId(friendlyId);
+        if (!publication) {
+            return res.status(404).send('Publicação não encontrada');
+        }
 
-    const filename = publications[id].filename;
-    const filePath = path.join(htmlDir, filename);
+        const htmlDir = getUserHtmlDir(publication.user_id);
+        const filePath = path.join(htmlDir, publication.filename);
 
-    if (fs.existsSync(filePath)) {
-        res.sendFile(filePath);
-    } else {
-        res.status(404).send('Arquivo não encontrado');
+        if (fs.existsSync(filePath)) {
+            res.sendFile(filePath);
+        } else {
+            res.status(404).send('Arquivo não encontrado');
+        }
+    } catch (error) {
+        console.error('Erro ao visualizar publicação:', error);
+        res.status(500).send('Erro ao visualizar publicação');
     }
 });
 
-// Rota para obter informações de publicação
-app.get('/publish-info/:filename', (req, res) => {
+// Despublicar
+app.delete('/publish/:filename', requireAuth, async (req, res) => {
     const filename = req.params.filename;
-    
-    // Procurar publicação existente para este arquivo
-    const existingPub = Object.entries(publications).find(
-        ([id, pub]) => pub.filename === filename
-    );
+    const userId = req.session.userId;
 
-    if (existingPub) {
-        res.json({
-            published: true,
-            publicUrl: `/p/${existingPub[0]}`,
-            friendlyId: existingPub[0]
+    try {
+        const clone = await getCloneByFilename(filename, userId);
+        if (!clone) {
+            return res.status(404).json({ error: 'Clone não encontrado' });
+        }
+
+        // Obter publicação antes de deletar para retornar URL
+        const publication = await getPublicationByCloneId(clone.id);
+        const publicUrl = publication ? publication.public_url : null;
+
+        await deletePublicationByClone(clone.id, userId);
+
+        res.json({ 
+            success: true, 
+            publicUrl: publicUrl 
         });
-    } else {
-        res.json({ published: false });
+    } catch (error) {
+        console.error('Erro ao despublicar:', error);
+        res.status(500).json({ error: 'Erro ao despublicar' });
     }
-});
-
-// Rota para DESPUBLICAR por filename
-app.delete('/publish/:filename', (req, res) => {
-    const filename = req.params.filename;
-
-    // Encontrar todas as publicações que apontam para este arquivo
-    const idsToDelete = Object.entries(publications)
-        .filter(([id, pub]) => pub.filename === filename)
-        .map(([id]) => id);
-
-    if (idsToDelete.length === 0) {
-        return res.status(404).json({ error: 'Publicação não encontrada para este arquivo' });
-    }
-
-    // Guardar a URL antes de deletar
-    const firstId = idsToDelete[0];
-    const publicUrl = `/p/${firstId}`;
-
-    idsToDelete.forEach((id) => {
-        delete publications[id];
-    });
-    savePublications();
-
-    res.json({ success: true, removed: idsToDelete.length, publicUrl: publicUrl });
 });
 
 // Iniciar servidor

@@ -8,6 +8,11 @@ yarn-error.log*
 html_copies/
 publications.json
 
+# Database
+database.db
+sessions.db
+*.db-journal
+
 # Environment variables
 .env
 .env.local

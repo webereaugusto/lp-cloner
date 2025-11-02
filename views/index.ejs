@@ -199,6 +199,44 @@
             font-size: 0.9rem;
         }
 
+        /* Add Clone Button */
+        .add-clone-button-container {
+            display: flex;
+            justify-content: center;
+            margin: 3rem 0;
+        }
+
+        .add-clone-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.5rem 3rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            font-size: 1.25rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .add-clone-button:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(102, 126, 234, 0.5);
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+
+        .add-clone-button:active {
+            transform: translateY(-2px);
+        }
+
+        .add-clone-button i {
+            font-size: 1.5rem;
+        }
+
         /* Content Cards */
         .content-section {
             background: var(--card-bg);
@@ -556,21 +594,30 @@
         </div>
 
         <div class="sidebar-menu">
-            <a href="#" class="menu-item active" onclick="showSection('dashboard'); return false;">
+            <a href="#" class="menu-item active" onclick="showSection('dashboard', event); return false;">
                 <i class="fas fa-home"></i>
                 <span>Dashboard</span>
             </a>
-            <a href="#" class="menu-item" onclick="showSection('new'); return false;">
+            <a href="#" class="menu-item" onclick="showSection('new', event); return false;">
                 <i class="fas fa-plus-circle"></i>
                 <span>Novo Clone</span>
             </a>
-            <a href="#" class="menu-item" onclick="showSection('files'); return false;">
+            <a href="#" class="menu-item" onclick="showSection('files', event); return false;">
                 <i class="fas fa-folder-open"></i>
                 <span>Clones</span>
             </a>
         </div>
 
         <div class="sidebar-footer">
+            <% if (userId) { %>
+                <div class="mb-2">
+                    <small class="text-muted px-3">Logado como: <strong><%= userEmail %></strong></small>
+                </div>
+                <a href="/auth/logout" class="menu-item w-100 text-start border-0" style="background: transparent; text-decoration: none;">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Sair</span>
+                </a>
+            <% } %>
             <button id="themeToggle" class="menu-item w-100 text-start border-0" style="background: transparent;">
                 <i class="fas fa-moon"></i>
                 <span>Tema Dark</span>
@@ -621,6 +668,14 @@
                     <div class="stat-value" id="statTotalLinks"><%= stats ? stats.totalLinks : 0 %></div>
                     <div class="stat-label">Links Totais</div>
                 </div>
+            </div>
+
+            <!-- Add Clone Button -->
+            <div class="add-clone-button-container">
+                <a href="#" class="add-clone-button" onclick="showSection('new', event); return false;">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>Criar Novo Clone</span>
+                </a>
             </div>
         </div>
 
@@ -854,7 +909,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Menu Navigation
-        function showSection(section) {
+        function showSection(section, event) {
             // Hide all sections
             document.querySelectorAll('.content-section').forEach(s => s.style.display = 'none');
             
@@ -864,8 +919,21 @@
             // Show selected section
             document.getElementById(section + 'Section').style.display = 'block';
             
-            // Add active to clicked menu item
-            event.target.closest('.menu-item').classList.add('active');
+            // Add active to clicked menu item (if clicked from menu)
+            if (event && event.target) {
+                const menuItem = event.target.closest('.menu-item');
+                if (menuItem) {
+                    menuItem.classList.add('active');
+                } else {
+                    // If clicked from button, activate corresponding menu item
+                    const menuItems = document.querySelectorAll('.menu-item');
+                    menuItems.forEach(item => {
+                        if (item.getAttribute('onclick') && item.getAttribute('onclick').includes(`'${section}'`)) {
+                            item.classList.add('active');
+                        }
+                    });
+                }
+            }
         }
 
         // Theme Toggle
