@@ -3,12 +3,24 @@ const { createClient } = require('@supabase/supabase-js');
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
 
+// Helper para validar URL http/https
+function isValidHttpUrl(url) {
+  try {
+    const u = new URL(url);
+    return u.protocol === 'http:' || u.protocol === 'https:';
+  } catch (_) {
+    return false;
+  }
+}
+
 // Não lançar erro aqui, apenas avisar. O dotenv já foi carregado em server.js
 if (!supabaseUrl || !supabaseKey) {
     console.warn('⚠️  SUPABASE_URL ou SUPABASE_KEY não configuradas');
 }
 
-const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
+const supabase = (supabaseUrl && supabaseKey && isValidHttpUrl(supabaseUrl))
+  ? createClient(supabaseUrl, supabaseKey)
+  : null;
 
 // Função de inicialização (não precisa criar tabelas, mas pode validar conexão)
 async function initDatabase() {

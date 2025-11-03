@@ -9,7 +9,17 @@ const { v4: uuidv4 } = require('uuid');
 const cheerio = require('cheerio');
 
 // Escolher banco de dados baseado em variável de ambiente
-const useSupabase = process.env.USE_SUPABASE === 'true' || process.env.USE_SUPABASE === '1';
+let useSupabase = process.env.USE_SUPABASE === 'true' || process.env.USE_SUPABASE === '1';
+// Validar env do Supabase antes de confirmar uso
+const envSupabaseUrl = process.env.SUPABASE_URL;
+const envSupabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+function isValidHttpUrl(url) {
+    try { const u = new URL(url); return u.protocol === 'http:' || u.protocol === 'https:'; } catch { return false; }
+}
+if (useSupabase && (!envSupabaseUrl || !envSupabaseKey || !isValidHttpUrl(envSupabaseUrl))) {
+    console.warn('SUPABASE habilitado, porém variáveis inválidas. Caindo para SQLite.');
+    useSupabase = false;
+}
 console.log(`🔌 Usando banco de dados: ${useSupabase ? 'Supabase' : 'SQLite'}`);
 const db = useSupabase ? require('./database_supabase') : require('./database');
 
