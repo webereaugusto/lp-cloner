@@ -39,6 +39,15 @@ app.use(express.static('public'));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
+// Evitar cache de páginas dinâmicas (útil para refletir alterações imediatamente)
+app.use((req, res, next) => {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+    res.set('Surrogate-Control', 'no-store');
+    next();
+});
+
 // Trust proxy (necessário para Render)
 app.set('trust proxy', 1);
 
@@ -163,6 +172,11 @@ app.get('/', (req, res) => {
         return res.redirect('/dashboard');
     }
     res.render('landing');
+});
+
+// Health check endpoint para uptime monitors
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'ok', timestamp: Date.now() });
 });
 
 // Dashboard (protegida)
