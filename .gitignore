@@ -7,6 +7,7 @@ yarn-error.log*
 # Arquivos salvos
 html_copies/
 publications.json
+!html_copies/.gitkeep
 
 # Database
 database.db

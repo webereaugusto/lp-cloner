@@ -54,7 +54,8 @@
         .hero {
             padding: 6rem 2rem;
             text-align: center;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
+            color: #1a1f29;
         }
 
         .hero h1 {
@@ -69,9 +70,13 @@
 
         .hero p {
             font-size: 1.25rem;
-            color: var(--muted);
+            color: #4a5568;
             max-width: 700px;
             margin: 0 auto 2rem;
+        }
+
+        .hero .text-muted {
+            color: #718096 !important;
         }
 
         .cta-buttons {
@@ -282,6 +287,177 @@
                 font-size: 1rem;
             }
         }
+
+        /* Progress Modal */
+        .progress-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+
+        .progress-content {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 2rem;
+            min-width: 400px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+
+        .progress-spinner {
+            width: 80px;
+            height: 80px;
+            border: 8px solid var(--card-border);
+            border-top: 8px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1.5rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .progress-steps {
+            text-align: left;
+            margin: 1.5rem 0;
+        }
+
+        .progress-step {
+            padding: 0.5rem;
+            margin: 0.5rem 0;
+            border-radius: 8px;
+            transition: all 0.3s;
+            color: var(--muted);
+        }
+
+        .progress-step.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .progress-step.completed {
+            background: rgba(25,135,84,0.1);
+            color: #198754;
+        }
+
+        /* Success Modal */
+        .success-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10001;
+        }
+
+        .success-content {
+            background: white;
+            border-radius: 16px;
+            padding: 2.5rem;
+            min-width: 500px;
+            max-width: 600px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            animation: slideIn 0.3s ease-out;
+            color: #1a1f29;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(25,135,84,0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            animation: scaleIn 0.5s ease-out;
+        }
+
+        .success-icon i {
+            font-size: 2.5rem;
+            color: #198754;
+            animation: bounce 0.6s ease-out;
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+            }
+            to {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .success-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .success-btn {
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .success-btn.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .success-btn.outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .success-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
     </style>
 </head>
 <body>
@@ -304,16 +480,34 @@
     <!-- Hero Section -->
     <section class="hero">
         <div class="container">
-            <h1>Clone e Gerencie Páginas HTML com Facilidade</h1>
-            <p>
-                Crie cópias perfeitas de qualquer página web, edite links, faça testes A/B 
-                e publique suas versões em URLs amigáveis. Tudo em um só lugar.
+            <h1>Clone qualquer página de vendas porém com seu link pessoal de vendas</h1>
+            <p class="mb-4" style="font-size: 1.1rem;">
+                Teste agora mesmo! Clone uma página e veja como funciona. 
+                Depois faça login para acessar e editar seu clone.
             </p>
+            
+            <!-- Clone Form -->
+            <div class="clone-form-container" style="max-width: 700px; margin: 0 auto 2rem;">
+                <form id="landingCloneForm" class="d-flex gap-2 flex-wrap justify-content-center align-items-center">
+                    <input 
+                        type="url" 
+                        id="landingUrl" 
+                        name="url" 
+                        class="form-control form-control-lg" 
+                        placeholder="https://exemplo.com/pagina-de-vendas" 
+                        required 
+                        style="flex: 1; min-width: 300px; background: white; border: 2px solid #e2e8f0; color: #1a1f29; padding: 1rem 1.5rem; font-size: 1.1rem;"
+                        onfocus="this.style.borderColor='#667eea'; this.style.outline='none'; this.style.boxShadow='0 0 0 3px rgba(102, 126, 234, 0.1)';"
+                        onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';"
+                    >
+                    <button type="submit" class="btn-primary-large" id="landingSubmitBtn" style="white-space: nowrap;">
+                        <i class="fas fa-clone"></i>
+                        Clonar Agora
+                    </button>
+                </form>
+            </div>
+
             <div class="cta-buttons">
-                <a href="/login" class="btn-primary-large">
-                    <i class="fas fa-rocket"></i>
-                    Começar Agora
-                </a>
                 <a href="#casos-de-uso" class="btn-outline-large">
                     <i class="fas fa-info-circle"></i>
                     Saiba Mais
@@ -492,6 +686,151 @@
             <p>&copy; 2025 LP Cloner. Todos os direitos reservados.</p>
         </div>
     </footer>
+
+    <!-- Progress Modal -->
+    <div id="progressModal" class="progress-modal">
+        <div class="progress-content">
+            <div class="progress-spinner"></div>
+            <h4 class="mb-3">Clonando página...</h4>
+            <div class="progress-steps">
+                <div class="progress-step" id="step1">
+                    <i class="fas fa-circle-dot"></i> Conectando ao servidor
+                </div>
+                <div class="progress-step" id="step2">
+                    <i class="fas fa-circle-dot"></i> Baixando conteúdo
+                </div>
+                <div class="progress-step" id="step3">
+                    <i class="fas fa-circle-dot"></i> Analisando links
+                </div>
+                <div class="progress-step" id="step4">
+                    <i class="fas fa-circle-dot"></i> Salvando arquivo
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="success-modal">
+        <div class="success-content">
+            <div class="success-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h3 class="mb-2" style="color: #1a1f29;">Clone criado com sucesso! 🎉</h3>
+            <p style="color: #718096; margin-bottom: 1.5rem;">
+                Para acessar e editar seu clone, você precisa fazer login ou criar uma conta gratuita.
+            </p>
+            <div class="success-actions">
+                <a href="/login" class="success-btn primary">
+                    <i class="fas fa-sign-in-alt"></i> Fazer Login
+                </a>
+                <a href="/login" class="success-btn outline">
+                    <i class="fas fa-user-plus"></i> Criar Conta
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Progress Modal Functions
+        function showProgress() {
+            const modal = document.getElementById('progressModal');
+            modal.style.display = 'flex';
+            
+            // Reset all steps
+            for (let i = 1; i <= 4; i++) {
+                const step = document.getElementById(`step${i}`);
+                step.classList.remove('active', 'completed');
+            }
+        }
+
+        function hideProgress() {
+            const modal = document.getElementById('progressModal');
+            modal.style.display = 'none';
+        }
+
+        function updateProgressStep(stepNum) {
+            const step = document.getElementById(`step${stepNum}`);
+            if (step) {
+                step.classList.add('active');
+                
+                // Mark previous steps as completed
+                for (let i = 1; i < stepNum; i++) {
+                    const prevStep = document.getElementById(`step${i}`);
+                    if (prevStep) {
+                        prevStep.classList.remove('active');
+                        prevStep.classList.add('completed');
+                    }
+                }
+            }
+        }
+
+        // Success Modal Functions
+        function showSuccessModal() {
+            const modal = document.getElementById('successModal');
+            modal.style.display = 'flex';
+        }
+
+        function hideSuccessModal() {
+            const modal = document.getElementById('successModal');
+            modal.style.display = 'none';
+        }
+
+        // Form submission
+        document.getElementById('landingCloneForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const url = document.getElementById('landingUrl').value;
+            const submitBtn = document.getElementById('landingSubmitBtn');
+
+            submitBtn.disabled = true;
+            showProgress();
+            updateProgressStep(1);
+
+            try {
+                // Simulate progress steps
+                setTimeout(() => updateProgressStep(2), 500);
+                
+                const response = await fetch('/copy-public', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ url })
+                });
+
+                setTimeout(() => updateProgressStep(3), 1000);
+                setTimeout(() => updateProgressStep(4), 1500);
+
+                let data;
+                try {
+                    data = await response.json();
+                } catch (jsonError) {
+                    console.error('Erro ao parsear resposta:', jsonError);
+                    const text = await response.text();
+                    console.error('Resposta do servidor:', text);
+                    throw new Error('Resposta inválida do servidor');
+                }
+
+                setTimeout(() => {
+                    hideProgress();
+
+                    if (response.ok && data.success) {
+                        document.getElementById('landingUrl').value = '';
+                        showSuccessModal();
+                        submitBtn.disabled = false;
+                    } else {
+                        alert(data.error || 'Erro ao clonar página. Verifique se a URL está correta.');
+                        submitBtn.disabled = false;
+                    }
+                }, 2000);
+            } catch (error) {
+                hideProgress();
+                console.error('Erro completo:', error);
+                alert('Erro: ' + (error.message || 'Erro de conexão. Verifique a URL e tente novamente.'));
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
 </body>
 </html>
 

@@ -280,8 +280,10 @@
 
                 const data = await response.json();
                 if (response.ok) {
-                    showAlert('Conta criada com sucesso! Faça login.', 'success');
-                    setTimeout(() => showTab('login'), 1500);
+                    showAlert('Conta criada com sucesso! Redirecionando...', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/dashboard';
+                    }, 1000);
                 } else {
                     showAlert(data.error || 'Erro ao criar conta', 'danger');
                 }

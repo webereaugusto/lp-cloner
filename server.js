@@ -92,6 +92,19 @@ app.post('/auth/register', async (req, res) => {
 
     const result = await register(email, password);
     if (result.success) {
+        // Fazer login automático após registro
+        req.session.userId = result.user.id;
+        req.session.userEmail = result.user.email;
+        
+        // Transferir clones pendentes se houver
+        if (req.session.pendingClones && req.session.pendingClones.length > 0) {
+            const sessionId = req.session.publicSessionId || req.sessionID;
+            await transferPendingClones(result.user.id, sessionId);
+            req.session.pendingClones = [];
+            req.session.publicSessionId = null;
+        }
+        
+        req.session.save();
         res.json({ success: true, message: 'Conta criada com sucesso' });
     } else {
         res.status(400).json({ error: result.error });
@@ -110,6 +123,14 @@ app.post('/auth/login', async (req, res) => {
         if (result.success) {
             req.session.userId = result.user.id;
             req.session.userEmail = result.user.email;
+            
+            // Transferir clones pendentes se houver
+            if (req.session.pendingClones && req.session.pendingClones.length > 0) {
+                const sessionId = req.session.publicSessionId || req.sessionID;
+                await transferPendingClones(result.user.id, sessionId);
+                req.session.pendingClones = [];
+                req.session.publicSessionId = null;
+            }
             
             // Salvar sessão antes de enviar resposta
             req.session.save((err) => {
@@ -179,7 +200,172 @@ app.get('/dashboard', requireAuth, async (req, res) => {
     }
 });
 
-// Rota para copiar URL
+// Função para criar diretório temporário
+function getTempDir() {
+    const tempDir = path.join(__dirname, 'html_copies', 'temp');
+    if (!fs.existsSync(tempDir)) {
+        fs.mkdirSync(tempDir, { recursive: true });
+    }
+    return tempDir;
+}
+
+// Função para transferir clones temporários para o usuário
+async function transferPendingClones(userId, sessionId) {
+    try {
+        const tempDir = getTempDir();
+        const tempFiles = fs.readdirSync(tempDir).filter(f => f.endsWith('.html') && f.startsWith(`session_${sessionId}_`));
+        
+        const htmlDir = getUserHtmlDir(userId);
+        const transferred = [];
+
+        for (const tempFile of tempFiles) {
+            try {
+                // Ler arquivo temporário
+                const tempPath = path.join(tempDir, tempFile);
+                const htmlContent = fs.readFileSync(tempPath, 'utf8');
+                
+                // Ler metadados
+                const metadataPath = path.join(tempDir, tempFile.replace('.html', '.json'));
+                let metadata = {};
+                if (fs.existsSync(metadataPath)) {
+                    metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf8'));
+                }
+
+                // Criar novo filename único para o usuário
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                const id = uuidv4().substring(0, 8);
+                const newFilename = `${timestamp}_${id}.html`;
+
+                // Salvar no diretório do usuário
+                const userFilePath = path.join(htmlDir, newFilename);
+                fs.writeFileSync(userFilePath, htmlContent);
+
+                // Salvar metadados
+                const userMetadataPath = path.join(htmlDir, `${newFilename}.json`);
+                fs.writeFileSync(userMetadataPath, JSON.stringify(metadata, null, 2));
+
+                // Salvar no banco
+                await createClone(userId, newFilename, metadata.originalUrl || '', htmlContent.length, metadata.totalLinks || 0);
+
+                // Deletar arquivos temporários
+                fs.unlinkSync(tempPath);
+                if (fs.existsSync(metadataPath)) {
+                    fs.unlinkSync(metadataPath);
+                }
+
+                transferred.push(newFilename);
+            } catch (err) {
+                console.error(`Erro ao transferir ${tempFile}:`, err);
+            }
+        }
+
+        return transferred;
+    } catch (error) {
+        console.error('Erro ao transferir clones pendentes:', error);
+        return [];
+    }
+}
+
+// Rota pública para copiar URL (sem autenticação)
+app.post('/copy-public', async (req, res) => {
+    const { url } = req.body;
+
+    if (!url) {
+        return res.status(400).json({ error: 'URL é obrigatória' });
+    }
+
+    try {
+        // Validar URL
+        new URL(url);
+
+        // Gerar sessionId se não existir
+        if (!req.session.publicSessionId) {
+            req.session.publicSessionId = uuidv4();
+        }
+
+        // Fazer requisição
+        const response = await axios.get(url, {
+            timeout: 10000,
+            headers: { 'User-Agent': 'LP-Cloner/1.0' }
+        });
+
+        // Extrair links
+        const $ = cheerio.load(response.data);
+        const links = [];
+
+        $('a[href]').each((index, element) => {
+            const href = $(element).attr('href');
+            const text = $(element).text().trim() || '[sem texto]';
+            const title = $(element).attr('title') || '';
+
+            let absoluteUrl;
+            try {
+                absoluteUrl = new URL(href, url).href;
+            } catch (e) {
+                absoluteUrl = href;
+            }
+
+            links.push({
+                url: absoluteUrl,
+                text: text.substring(0, 100),
+                title: title,
+                isExternal: !absoluteUrl.startsWith(new URL(url).origin) && absoluteUrl.startsWith('http')
+            });
+        });
+
+        // Gerar filename único para arquivo temporário
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const id = uuidv4().substring(0, 8);
+        const tempFilename = `session_${req.session.publicSessionId}_${timestamp}_${id}.html`;
+
+        // Salvar temporariamente
+        const tempDir = getTempDir();
+        const tempPath = path.join(tempDir, tempFilename);
+        fs.writeFileSync(tempPath, response.data);
+
+        // Salvar metadados temporários
+        const metadataPath = path.join(tempDir, tempFilename.replace('.html', '.json'));
+        const metadata = {
+            originalUrl: url,
+            copiedAt: new Date().toISOString(),
+            totalLinks: links.length,
+            links: links
+        };
+        fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2));
+
+        // Guardar informação na sessão para transferir depois
+        if (!req.session.pendingClones) {
+            req.session.pendingClones = [];
+        }
+        req.session.pendingClones.push({
+            tempFilename,
+            originalUrl: url,
+            totalLinks: links.length
+        });
+
+        req.session.save();
+
+        res.json({
+            success: true,
+            totalLinks: links.length,
+            message: 'Clone processado com sucesso! Faça login para acessar.'
+        });
+
+    } catch (error) {
+        console.error('Erro ao copiar HTML:', error.message);
+        let errorMessage = 'Erro ao copiar o HTML';
+        if (error.code === 'ENOTFOUND') {
+            errorMessage = 'URL não encontrada';
+        } else if (error.code === 'ECONNREFUSED') {
+            errorMessage = 'Conexão recusada';
+        } else if (error.response) {
+            errorMessage = `Erro HTTP ${error.response.status}`;
+        }
+        res.status(500).json({ error: errorMessage });
+    }
+});
+
+// Rota para copiar URL (requer autenticação)
 app.post('/copy', requireAuth, async (req, res) => {
     const { url } = req.body;
     const userId = req.session.userId;

@@ -381,6 +381,145 @@
             opacity: 0.5;
         }
 
+        /* URL Pública Destacada */
+        .public-url-highlight {
+            background: rgba(102, 178, 255, 0.05);
+            border: 1px solid rgba(102, 178, 255, 0.2);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .public-url-box {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--card-bg);
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            gap: 1rem;
+        }
+
+        .public-url-box.disabled {
+            border-color: var(--card-border);
+            opacity: 0.6;
+        }
+
+        .public-url-link {
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 1rem;
+            text-decoration: none;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+        .public-url-link:hover {
+            color: #5599ff;
+            text-decoration: underline;
+        }
+
+        .copy-url-btn {
+            background: var(--primary);
+            border: none;
+            color: white;
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .copy-url-btn:hover {
+            background: #5599ff;
+            transform: scale(1.05);
+        }
+
+        /* Seção de Ações */
+        .actions-section {
+            border-top: 1px solid var(--card-border);
+            padding-top: 1rem;
+            margin-top: 1rem;
+        }
+
+        .main-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-download-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            flex-shrink: 0;
+        }
+
+        .btn-download-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+
+        .secondary-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            flex: 1;
+        }
+
+        .btn-action-secondary {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            border: 1px solid var(--card-border);
+            background: var(--card-bg);
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-action-secondary:hover {
+            background: var(--card-border);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-action-danger {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            border: 1px solid #dc3545;
+            background: transparent;
+            color: #dc3545;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-action-danger:hover {
+            background: #dc3545;
+            color: white;
+        }
+
         .progress-modal {
             position: fixed;
             top: 0;
@@ -714,62 +853,85 @@
                 <div id="filesList">
                     <% files.forEach(file => { %>
                         <div class="file-card fade-in" id="card_<%= file.name %>">
-                            <!-- Status Switch -->
-                            <div class="status-switch-container">
-                                <label class="status-switch">
-                                    <input type="checkbox" 
-                                           <%= file.publishInfo ? 'checked' : '' %>
-                                           onchange="togglePublishStatus('<%= file.name %>', this.checked)"
-                                           id="switch_<%= file.name %>">
-                                    <span class="status-slider"></span>
-                                </label>
-                                <span class="status-label <%= file.publishInfo ? 'published' : 'draft' %>" id="label_<%= file.name %>">
-                                    <%= file.publishInfo ? 'Publicado' : 'Rascunho' %>
-                                </span>
+                            <!-- Header com Status -->
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="status-switch-container" style="margin-bottom: 0;">
+                                    <label class="status-switch">
+                                        <input type="checkbox" 
+                                               <%= file.publishInfo ? 'checked' : '' %>
+                                               onchange="togglePublishStatus('<%= file.name %>', this.checked)"
+                                               id="switch_<%= file.name %>">
+                                        <span class="status-slider"></span>
+                                    </label>
+                                    <span class="status-label <%= file.publishInfo ? 'published' : 'draft' %>" id="label_<%= file.name %>">
+                                        <%= file.publishInfo ? 'Publicado' : 'Rascunho' %>
+                                    </span>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar"></i> <%= new Date(file.created).toLocaleDateString('pt-BR') %>
+                                    </small>
+                                    <small class="text-muted">
+                                        <i class="fas fa-weight-hanging"></i> <%= (file.size / 1024).toFixed(1) %> KB
+                                    </small>
+                                </div>
                             </div>
                             
+                            <!-- URL Original -->
                             <% if (file.originalUrl) { %>
-                                <div class="mb-2">
+                                <div class="mb-3">
+                                    <small class="text-muted d-block mb-1">URL Original:</small>
                                     <a href="<%= file.originalUrl %>" target="_blank" class="url-pill" title="<%= file.originalUrl %>">
                                         <%= file.originalUrl %>
                                     </a>
                                 </div>
                             <% } %>
-                            <div class="d-flex align-items-center gap-3 mb-2 flex-wrap">
-                                <small class="text-muted">
-                                    <i class="fas fa-calendar"></i> <%= new Date(file.created).toLocaleString('pt-BR') %>
-                                </small>
-                                <small class="text-muted">
-                                    <i class="fas fa-weight-hanging"></i> <%= (file.size / 1024).toFixed(1) %> KB
-                                </small>
-                            </div>
-                            <div class="mb-2" id="publicUrl_<%= file.name %>">
-                                <small class="text-muted <%= file.publishInfo ? '' : 'strikethrough' %>">
-                                    <i class="fas fa-link"></i> URL Pública:
-                                    <% if (file.publishInfo) { %>
-                                        <a href="<%= file.publishInfo.publicUrl %>" target="_blank" class="text-decoration-none">
+
+                            <!-- URL Pública Destacada -->
+                            <div class="public-url-highlight mb-3" id="publicUrl_<%= file.name %>">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <i class="fas fa-globe" style="color: var(--primary);"></i>
+                                    <small class="text-muted fw-bold">URL Pública:</small>
+                                </div>
+                                <% if (file.publishInfo) { %>
+                                    <div class="public-url-box">
+                                        <a href="<%= file.publishInfo.publicUrl %>" target="_blank" class="public-url-link">
+                                            <i class="fas fa-external-link-alt me-2"></i>
                                             <%= file.publishInfo.publicUrl %>
                                         </a>
-                                    <% } else { %>
-                                        <span id="urlText_<%= file.name %>">/p/---</span>
-                                    <% } %>
-                                </small>
+                                        <button class="copy-url-btn" onclick="copyToClipboard('<%= file.publishInfo.publicUrl %>')" title="Copiar URL">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                    </div>
+                                <% } else { %>
+                                    <div class="public-url-box disabled">
+                                        <span class="text-muted" id="urlText_<%= file.name %>">/p/---</span>
+                                        <small class="text-muted">Publique para obter uma URL pública</small>
+                                    </div>
+                                <% } %>
                             </div>
-                            <div class="btn-group flex-wrap" role="group">
-                                <a href="/download/<%= file.name %>" class="btn btn-primary btn-sm">
-                                    <i class="fas fa-download"></i> Download
-                                </a>
-                                <a href="<%= file.url %>" target="_blank" class="btn btn-outline-primary btn-sm">
-                                    <i class="fas fa-eye"></i> Visualizar
-                                </a>
-                                <button type="button" class="btn btn-outline-info btn-sm"
-                                        onclick="viewLinks('<%= file.name %>')">
-                                    <i class="fas fa-link"></i> Links
-                                </button>
-                                <button type="button" class="btn btn-outline-danger btn-sm"
-                                        onclick="deleteFile('<%= file.name %>')">
-                                    <i class="fas fa-trash"></i> Excluir
-                                </button>
+
+                            <!-- Ações principais -->
+                            <div class="actions-section">
+                                <div class="main-actions">
+                                    <a href="/download/<%= file.name %>" class="btn-download-primary">
+                                        <i class="fas fa-download"></i>
+                                        <span>Download</span>
+                                    </a>
+                                    <div class="secondary-actions">
+                                        <a href="<%= file.url %>" target="_blank" class="btn-action-secondary">
+                                            <i class="fas fa-eye"></i> Visualizar
+                                        </a>
+                                        <button type="button" class="btn-action-secondary"
+                                                onclick="viewLinks('<%= file.name %>')">
+                                            <i class="fas fa-link"></i> Links
+                                        </button>
+                                        <button type="button" class="btn-action-danger"
+                                                onclick="deleteFile('<%= file.name %>')">
+                                            <i class="fas fa-trash"></i> Excluir
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     <% }); %>
@@ -1242,14 +1404,21 @@
                         label.textContent = 'Publicado';
                         label.className = 'status-label published';
                         
-                        // Atualizar URL pública (remover strikethrough)
+                        // Atualizar URL pública com novo layout
                         publicUrlDiv.innerHTML = `
-                            <small class="text-muted">
-                                <i class="fas fa-link"></i> URL Pública:
-                                <a href="${data.publicUrl}" target="_blank" class="text-decoration-none">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <i class="fas fa-globe" style="color: var(--primary);"></i>
+                                <small class="text-muted fw-bold">URL Pública:</small>
+                            </div>
+                            <div class="public-url-box">
+                                <a href="${data.publicUrl}" target="_blank" class="public-url-link">
+                                    <i class="fas fa-external-link-alt me-2"></i>
                                     ${data.publicUrl}
                                 </a>
-                            </small>
+                                <button class="copy-url-btn" onclick="copyToClipboard('${data.publicUrl}')" title="Copiar URL">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
                         `;
                         
                         // Atualizar estatísticas no dashboard dinamicamente
@@ -1272,22 +1441,18 @@
                         label.textContent = 'Rascunho';
                         label.className = 'status-label draft';
                         
-                        // Adicionar strikethrough na URL pública
-                        if (data.publicUrl) {
-                            publicUrlDiv.innerHTML = `
-                                <small class="text-muted strikethrough">
-                                    <i class="fas fa-link"></i> URL Pública:
-                                    <span>${data.publicUrl}</span>
-                                </small>
-                            `;
-                        } else {
-                            publicUrlDiv.innerHTML = `
-                                <small class="text-muted strikethrough">
-                                    <i class="fas fa-link"></i> URL Pública:
-                                    <span>/p/---</span>
-                                </small>
-                            `;
-                        }
+                        // Atualizar URL pública para modo rascunho
+                        const urlToShow = data.publicUrl || '/p/---';
+                        publicUrlDiv.innerHTML = `
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <i class="fas fa-globe" style="color: var(--muted);"></i>
+                                <small class="text-muted fw-bold">URL Pública:</small>
+                            </div>
+                            <div class="public-url-box disabled">
+                                <span class="text-muted strikethrough">${urlToShow}</span>
+                                <small class="text-muted">Publique para obter uma URL pública</small>
+                            </div>
+                        `;
                         
                         // Atualizar estatísticas no dashboard dinamicamente
                         updateDashboardStats(-1, 1); // Decrementa publicados, incrementa rascunhos
@@ -1419,6 +1584,30 @@
                 submitBtn.innerHTML = '<i class="fas fa-clone me-2"></i> Copiar HTML';
             }
         });
+
+        // Função para copiar URL para área de transferência
+        function copyToClipboard(url) {
+            // Se a URL já for completa, usar ela; senão, adicionar origin
+            const fullUrl = url.startsWith('http') ? url : window.location.origin + url;
+            navigator.clipboard.writeText(fullUrl).then(() => {
+                showAlert('URL copiada para a área de transferência!', 'success');
+            }).catch(err => {
+                // Fallback para navegadores antigos
+                const textArea = document.createElement('textarea');
+                textArea.value = fullUrl;
+                textArea.style.position = 'fixed';
+                textArea.style.opacity = '0';
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    showAlert('URL copiada para a área de transferência!', 'success');
+                } catch (err) {
+                    showAlert('Erro ao copiar URL', 'danger');
+                }
+                document.body.removeChild(textArea);
+            });
+        }
     </script>
 </body>
 </html>
