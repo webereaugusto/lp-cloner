@@ -882,17 +882,39 @@ app.get('/p/:id', async (req, res) => {
 
         console.log(`Tentando acessar arquivo: ${filePath}`);
         console.log(`Arquivo existe? ${fs.existsSync(filePath)}`);
+        console.log(`Diretório existe? ${fs.existsSync(htmlDir)}`);
 
         if (fs.existsSync(filePath)) {
             res.sendFile(filePath);
         } else {
             console.error(`Arquivo não encontrado no caminho: ${filePath}`);
-            console.error(`Diretório existe? ${fs.existsSync(htmlDir)}`);
+            console.error(`Diretório base (__dirname): ${__dirname}`);
+            console.error(`Diretório html_copies existe? ${fs.existsSync(path.join(__dirname, 'html_copies'))}`);
+            
             if (fs.existsSync(htmlDir)) {
-                const files = fs.readdirSync(htmlDir);
-                console.error(`Arquivos no diretório: ${files.join(', ')}`);
+                try {
+                    const files = fs.readdirSync(htmlDir);
+                    console.error(`Arquivos no diretório ${htmlDir}: ${files.join(', ')}`);
+                } catch (err) {
+                    console.error(`Erro ao listar arquivos do diretório: ${err.message}`);
+                }
+            } else {
+                console.error(`Diretório ${htmlDir} não existe`);
+                // Verificar se o diretório pai existe
+                const parentDir = path.dirname(htmlDir);
+                console.error(`Diretório pai existe? ${fs.existsSync(parentDir)}`);
+                if (fs.existsSync(parentDir)) {
+                    try {
+                        const parentFiles = fs.readdirSync(parentDir);
+                        console.error(`Conteúdo do diretório pai: ${parentFiles.join(', ')}`);
+                    } catch (err) {
+                        console.error(`Erro ao listar diretório pai: ${err.message}`);
+                    }
+                }
             }
-            res.status(404).send('Arquivo não encontrado');
+            
+            // No Render, arquivos podem ser perdidos em deploys. Retornar erro mais informativo
+            res.status(404).send('Arquivo não encontrado. O arquivo pode ter sido perdido após um deploy. Por favor, recrie o clone.');
         }
     } catch (error) {
         console.error('Erro ao visualizar publicação:', error);
