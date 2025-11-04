@@ -867,19 +867,36 @@ app.get('/p/:id', async (req, res) => {
     try {
         const publication = await getPublicationByFriendlyId(friendlyId);
         if (!publication) {
+            console.error(`Publicação não encontrada para friendlyId: ${friendlyId}`);
             return res.status(404).send('Publicação não encontrada');
+        }
+
+        // Verificar se temos os dados necessários
+        if (!publication.user_id || !publication.filename) {
+            console.error('Publicação sem user_id ou filename:', publication);
+            return res.status(404).send('Dados da publicação incompletos');
         }
 
         const htmlDir = getUserHtmlDir(publication.user_id);
         const filePath = path.join(htmlDir, publication.filename);
 
+        console.log(`Tentando acessar arquivo: ${filePath}`);
+        console.log(`Arquivo existe? ${fs.existsSync(filePath)}`);
+
         if (fs.existsSync(filePath)) {
             res.sendFile(filePath);
         } else {
+            console.error(`Arquivo não encontrado no caminho: ${filePath}`);
+            console.error(`Diretório existe? ${fs.existsSync(htmlDir)}`);
+            if (fs.existsSync(htmlDir)) {
+                const files = fs.readdirSync(htmlDir);
+                console.error(`Arquivos no diretório: ${files.join(', ')}`);
+            }
             res.status(404).send('Arquivo não encontrado');
         }
     } catch (error) {
         console.error('Erro ao visualizar publicação:', error);
+        console.error('Stack trace:', error.stack);
         res.status(500).send('Erro ao visualizar publicação');
     }
 });
