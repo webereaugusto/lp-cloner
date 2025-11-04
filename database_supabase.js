@@ -367,13 +367,23 @@ async function getPublicationByFriendlyId(friendlyId) {
         }
 
         // Formatar para manter compatibilidade
-        return {
+        const result = {
             ...publicationData,
             filename: cloneData ? cloneData.filename : null,
             user_id: cloneData ? cloneData.user_id : null
         };
+        
+        console.log(`getPublicationByFriendlyId(${friendlyId}) retornou:`, {
+            friendly_id: result.friendly_id,
+            clone_id: result.clone_id,
+            filename: result.filename,
+            user_id: result.user_id
+        });
+        
+        return result;
     } catch (error) {
         console.error('Erro ao buscar publicação por friendly_id:', error);
+        console.error('Stack trace:', error.stack);
         throw error;
     }
 }
