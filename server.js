@@ -934,7 +934,17 @@ app.get('/check-project-name/:projectName', requireAuth, async (req, res) => {
             existingClone = await getCloneByProjectName(trimmedName, req.session.userId);
         } catch (dbError) {
             console.error('Erro do banco de dados ao verificar nome do projeto:', dbError);
-            return res.status(500).json({ available: false, error: 'Erro ao verificar disponibilidade do nome' });
+            // Verificar se é erro de coluna não encontrada
+            if (dbError.message && dbError.message.includes('project_name')) {
+                return res.status(500).json({ 
+                    available: false, 
+                    error: 'Coluna project_name não existe no banco. Execute a migração SQL no Supabase.' 
+                });
+            }
+            return res.status(500).json({ 
+                available: false, 
+                error: dbError.message || 'Erro ao verificar disponibilidade do nome' 
+            });
         }
         
         if (existingClone) {

@@ -222,21 +222,32 @@ async function getCloneByFilename(filename, userId) {
 // Verificar se um nome de projeto está disponível para o usuário
 async function getCloneByProjectName(projectName, userId) {
     try {
+        // Verificar se projectName é válido (não null, não vazio)
+        if (!projectName || projectName.trim().length === 0) {
+            return null;
+        }
+
         const { data, error } = await supabase
             .from('clones')
             .select('*')
-            .eq('project_name', projectName)
+            .eq('project_name', projectName.trim())
             .eq('user_id', userId)
-            .single();
+            .maybeSingle(); // Use maybeSingle() ao invés de single() para não lançar erro quando não encontrar
 
         if (error) {
+            // Se for erro de coluna não encontrada, pode ser que a migração não foi executada
+            if (error.code === 'PGRST204' || (error.message && error.message.includes('project_name'))) {
+                console.error('Coluna project_name não encontrada. Execute a migração SQL no Supabase.');
+                throw new Error('Coluna project_name não existe no banco de dados. Execute a migração SQL.');
+            }
+            // Erro PGRST116 significa "não encontrado", o que é OK
             if (error.code === 'PGRST116') {
                 return null; // Não encontrado, nome disponível
             }
             throw error;
         }
 
-        return data;
+        return data || null;
     } catch (error) {
         console.error('Erro ao buscar clone por project_name:', error);
         throw error;
@@ -470,6 +481,8 @@ module.exports = {
     getClonesByUserId,
     getCloneById,
     getCloneByFilename,
+    getCloneByProjectName,
+    updateCloneProjectName,
     deleteClone,
     createPublication,
     getPublicationByFriendlyId,
