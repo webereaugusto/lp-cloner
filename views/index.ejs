@@ -1074,12 +1074,15 @@
             align-items: center;
             padding: 1.25rem 1.5rem;
             border-bottom: 1px solid var(--card-border);
-            transition: background-color 0.2s;
+            transition: all 0.2s ease;
             cursor: pointer;
+            position: relative;
         }
 
         .clone-item:hover {
             background: var(--bg-color);
+            transform: translateX(4px);
+            box-shadow: -4px 0 0 0 var(--primary);
         }
 
         .clone-item:last-child {
@@ -1126,6 +1129,19 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+        }
+
+        .project-title-clickable {
+            cursor: pointer;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            display: inline-block;
+        }
+
+        .project-title-clickable:hover {
+            background: rgba(102, 126, 234, 0.1);
+            color: var(--primary);
         }
 
         .clone-details {
@@ -1340,7 +1356,7 @@
                 <div id="clonesListBody">
                     <% if (files && files.length > 0) { %>
                         <% files.forEach(file => { %>
-                            <div class="clone-item" data-clone-name="<%= file.name.toLowerCase() %>" data-clone-url="<%= (file.originalUrl || '').toLowerCase() %>">
+                            <div class="clone-item" data-clone-name="<%= file.name.toLowerCase() %>" data-clone-url="<%= (file.originalUrl || '').toLowerCase() %>" onclick="showCloneDetail('<%= file.name %>')">
                                 <div class="clone-status-indicator <%= file.publishInfo ? 'published' : 'draft' %>"></div>
                                 <div class="clone-main-info">
                                     <div class="clone-name"><%= file.projectName ? file.projectName : file.name %></div>
@@ -1749,7 +1765,7 @@
             
             document.getElementById('cloneDetailTitle').innerHTML = `
                 <i class="fas fa-file-code me-2"></i>
-                <span>${displayName}</span>
+                <span class="project-title-clickable" onclick="editProjectName('${cloneData.name}', ${projectNameForOnClick})" title="Clique para editar o nome do projeto">${displayName}</span>
             `;
             
             // Container para edição inline do nome (mantido para compatibilidade com funções JS)
@@ -3332,8 +3348,8 @@
                          clonesData[filename].projectName = data.projectName;
                      }
                      
-                     // Atualizar título
-                     const titleSpan = document.querySelector('#cloneDetailTitle span');
+                     // Atualizar título (mantendo o onclick)
+                     const titleSpan = document.querySelector('#cloneDetailTitle .project-title-clickable');
                      if (titleSpan) {
                          titleSpan.textContent = data.projectName || filename;
                      }
