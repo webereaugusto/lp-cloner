@@ -335,6 +335,171 @@
             transform: translateY(-2px);
         }
 
+        /* Cards de Ação Clicáveis */
+        .file-card[onclick] {
+            transition: all 0.3s ease;
+        }
+
+        .file-card[onclick]:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            cursor: pointer;
+        }
+
+        .file-card[onclick]:active {
+            transform: translateY(-2px);
+        }
+
+        /* Estilos para cards de ação */
+        .action-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .action-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        }
+
+        .action-card:hover .action-icon {
+            transform: scale(1.1);
+        }
+
+        .action-card:hover .fa-chevron-right {
+            transform: translateX(4px);
+        }
+
+        .action-icon {
+            transition: transform 0.3s ease;
+        }
+
+        /* Modais estilo Supabase */
+        .supabase-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            z-index: 9998;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        .supabase-modal {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        .supabase-modal.wide {
+            max-width: 900px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .supabase-modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--card-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .supabase-modal-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-color);
+            margin: 0;
+        }
+
+        .supabase-modal-subtitle {
+            font-size: 0.9rem;
+            color: var(--muted);
+            margin-top: 0.25rem;
+        }
+
+        .supabase-modal-close {
+            background: none;
+            border: none;
+            color: var(--muted);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .supabase-modal-close:hover {
+            background: var(--card-border);
+            color: var(--text-color);
+        }
+
+        .supabase-modal-body {
+            padding: 1.5rem;
+        }
+
+        .supabase-modal-footer {
+            padding: 1.5rem;
+            border-top: 1px solid var(--card-border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+        }
+
+        .supabase-modal-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .supabase-modal-section-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .supabase-modal-section-description {
+            font-size: 0.875rem;
+            color: var(--muted);
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
         .status-switch-container {
             display: flex;
             align-items: center;
@@ -1122,10 +1287,6 @@
                 <i class="fas fa-plus-circle"></i>
                 <span>Novo Clone</span>
             </a>
-            <a href="#" class="menu-item" onclick="showSection('files', event); return false;">
-                <i class="fas fa-folder-open"></i>
-                <span>Clones</span>
-            </a>
         </div>
 
         <div class="sidebar-footer">
@@ -1579,42 +1740,46 @@
             const detailSection = document.getElementById('cloneDetailSection');
             detailSection.style.display = 'block';
 
-            // Preencher título com nome do projeto editável
+            // Preencher título com nome do projeto (simplificado)
             const displayName = cloneData.projectName || cloneData.name;
             // Escapar valor para uso em atributo onclick (escapar aspas simples)
-            // Se projectName for null ou undefined, usar string vazia
             const projectNameValue = cloneData.projectName || '';
             const escapedProjectName = String(projectNameValue).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
             const projectNameForOnClick = `'${escapedProjectName}'`;
+            
             document.getElementById('cloneDetailTitle').innerHTML = `
-                <div class="project-name-editable-container" id="projectNameContainer_${cloneData.name}">
-                    <div class="project-name-display-container">
+                <i class="fas fa-file-code me-2"></i>
+                <span>${displayName}</span>
+            `;
+            
+            // Container para edição inline do nome (mantido para compatibilidade com funções JS)
+            const titleContainer = document.createElement('div');
+            titleContainer.id = `projectNameContainer_${cloneData.name}`;
+            titleContainer.style.display = 'none';
+            titleContainer.innerHTML = `
+                <div class="project-name-display-container">
+                    <span class="project-name-display" id="projectNameDisplay_${cloneData.name}">${displayName}</span>
+                </div>
+                <div class="project-name-edit-container" id="projectNameEditContainer_${cloneData.name}" style="display: none;">
+                    <div class="d-flex align-items-center gap-2">
                         <i class="fas fa-file-code me-2"></i>
-                        <span class="project-name-display" id="projectNameDisplay_${cloneData.name}">${displayName}</span>
-                        <button type="button" class="btn btn-sm btn-outline-secondary ms-2" onclick="editProjectName('${cloneData.name}', ${projectNameForOnClick})" id="editProjectNameBtn_${cloneData.name}">
-                            <i class="fas fa-edit me-1"></i> Editar
+                        <input type="text" 
+                            class="form-control" 
+                            id="projectNameInput_${cloneData.name}" 
+                            value="${cloneData.projectName ? cloneData.projectName.replace(/"/g, '&quot;').replace(/'/g, '&#39;') : ''}" 
+                            placeholder="Nome do projeto"
+                            style="max-width: 400px;">
+                        <button type="button" class="btn btn-lg btn-success me-2" onclick="saveProjectName('${cloneData.name}')" id="saveProjectNameBtn_${cloneData.name}" style="font-weight: 600; padding: 0.75rem 2rem;">
+                            Salvar
+                        </button>
+                        <button type="button" class="btn btn-lg btn-outline-secondary" onclick="cancelEditProjectName('${cloneData.name}', ${projectNameForOnClick})" id="cancelProjectNameBtn_${cloneData.name}">
+                            Cancelar
                         </button>
                     </div>
-                    <div class="project-name-edit-container" id="projectNameEditContainer_${cloneData.name}" style="display: none;">
-                        <div class="d-flex align-items-center gap-2">
-                            <i class="fas fa-file-code me-2"></i>
-                            <input type="text" 
-                                class="form-control" 
-                                id="projectNameInput_${cloneData.name}" 
-                                value="${cloneData.projectName ? cloneData.projectName.replace(/"/g, '&quot;').replace(/'/g, '&#39;') : ''}" 
-                                placeholder="Nome do projeto"
-                                style="max-width: 400px;">
-                            <button type="button" class="btn btn-lg btn-success me-2" onclick="saveProjectName('${cloneData.name}')" id="saveProjectNameBtn_${cloneData.name}" style="font-weight: 600; padding: 0.75rem 2rem;">
-                                Salvar
-                            </button>
-                            <button type="button" class="btn btn-lg btn-outline-secondary" onclick="cancelEditProjectName('${cloneData.name}', ${projectNameForOnClick})" id="cancelProjectNameBtn_${cloneData.name}">
-                                Cancelar
-                            </button>
-                        </div>
-                        <div class="project-name-validation-message" id="projectNameValidation_${cloneData.name}" style="display: none; margin-top: 0.5rem;"></div>
-                    </div>
+                    <div class="project-name-validation-message" id="projectNameValidation_${cloneData.name}" style="display: none; margin-top: 0.5rem;"></div>
                 </div>
             `;
+            document.getElementById('cloneDetailTitle').appendChild(titleContainer);
             
             // Preencher subtítulo
             const subtitle = document.getElementById('cloneDetailSubtitle');
@@ -1632,34 +1797,116 @@
             const statusColor = cloneData.publishInfo ? '#10b981' : '#9ca3af';
 
             content.innerHTML = `
-                <!-- Status Card -->
-                <div class="file-card mb-3">
-                    <div class="d-flex align-items-center justify-content-between mb-3">
+                <!-- Status Card - Destacado -->
+                <div class="file-card mb-4" style="border: 2px solid ${statusColor}; background: ${cloneData.publishInfo ? 'rgba(16, 185, 129, 0.1)' : 'rgba(156, 163, 175, 0.1)'};">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
                         <div class="d-flex align-items-center gap-3">
-                            <div class="clone-status-indicator ${statusClass}" style="width: 16px; height: 16px; margin: 0;"></div>
+                            <div class="clone-status-indicator ${statusClass}" style="width: 20px; height: 20px; margin: 0;"></div>
                             <div>
-                                <h5 class="mb-0" style="color: ${statusColor};">${statusText}</h5>
-                                <small class="text-muted">Status atual do clone</small>
+                                <h4 class="mb-1" style="color: ${statusColor}; font-weight: 600;">${statusText}</h4>
+                                <small class="text-muted">${cloneData.publishInfo ? 'Clone está publicado e acessível publicamente' : 'Clone está em modo rascunho (não acessível publicamente)'}</small>
                             </div>
                         </div>
                         <div class="status-switch-container" style="margin: 0;">
-                            <label class="status-switch">
+                            <label class="status-switch" style="transform: scale(1.2);">
                                 <input type="checkbox" 
                                        ${cloneData.publishInfo ? 'checked' : ''}
                                        onchange="togglePublishStatus('${cloneData.name}', this.checked)"
                                        id="switch_detail_${cloneData.name}">
                                 <span class="status-slider"></span>
                             </label>
-                            <span class="status-label ${statusClass}" id="label_detail_${cloneData.name}">
+                            <span class="status-label ${statusClass}" id="label_detail_${cloneData.name}" style="font-size: 1rem; font-weight: 600;">
                                 ${statusText}
                             </span>
                         </div>
                     </div>
                 </div>
 
+                <!-- Ações Principais - Cards de Ação -->
+                <div class="row mb-4">
+                    <div class="col-md-3 mb-3">
+                        <div class="file-card h-100 action-card" style="border-left: 4px solid var(--primary);" onclick="editProjectName('${cloneData.name}', ${projectNameForOnClick})">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="action-icon" style="width: 48px; height: 48px; background: rgba(102, 126, 234, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-edit" style="font-size: 1.5rem; color: var(--primary);"></i>
+                                </div>
+                                <div style="flex: 1;">
+                                    <h6 class="mb-1" style="font-weight: 600; color: var(--text-color);">Alterar Nome do Projeto</h6>
+                                    <small class="text-muted">Clique para editar o nome do projeto</small>
+                                    <div class="mt-2">
+                                        <strong style="font-size: 0.9rem; color: var(--text-color); word-break: break-word;">${displayName}</strong>
+                                    </div>
+                                </div>
+                                <i class="fas fa-chevron-right text-muted" style="transition: transform 0.2s;"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="file-card h-100 action-card" style="border-left: 4px solid #10b981;" onclick="viewLinks('${cloneData.name}')">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="action-icon" style="width: 48px; height: 48px; background: rgba(16, 185, 129, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-link" style="font-size: 1.5rem; color: #10b981;"></i>
+                                </div>
+                                <div style="flex: 1;">
+                                    <h6 class="mb-1" style="font-weight: 600; color: var(--text-color);">Editar Links da Página</h6>
+                                    <small class="text-muted">Clique para modificar os links do clone</small>
+                                </div>
+                                <i class="fas fa-chevron-right text-muted" style="transition: transform 0.2s;"></i>
+                            </div>
+                        </div>
+                    </div>
+                    ${cloneData.publishInfo ? `
+                    <div class="col-md-3 mb-3">
+                        <div class="file-card h-100 action-card" style="border-left: 4px solid #f59e0b;" onclick="editPublicUrl('${cloneData.name}', '${cloneData.publishInfo.friendlyId}')">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="action-icon" style="width: 48px; height: 48px; background: rgba(245, 158, 11, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-globe" style="font-size: 1.5rem; color: #f59e0b;"></i>
+                                </div>
+                                <div style="flex: 1;">
+                                    <h6 class="mb-1" style="font-weight: 600; color: var(--text-color);">Editar URL Pública</h6>
+                                    <small class="text-muted">Clique para alterar a URL ao vivo</small>
+                                    <div class="mt-2">
+                                        <strong style="font-size: 0.85rem; color: var(--text-color); word-break: break-all;">${window.location.origin}/p/${cloneData.publishInfo.friendlyId}</strong>
+                                    </div>
+                                </div>
+                                <i class="fas fa-chevron-right text-muted" style="transition: transform 0.2s;"></i>
+                            </div>
+                        </div>
+                    </div>
+                    ` : `
+                    <div class="col-md-3 mb-3">
+                        <div class="file-card h-100" style="border-left: 4px solid #9ca3af; opacity: 0.6; cursor: not-allowed;">
+                            <div class="d-flex align-items-center gap-3">
+                                <div style="width: 48px; height: 48px; background: rgba(156, 163, 175, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-globe" style="font-size: 1.5rem; color: #9ca3af;"></i>
+                                </div>
+                                <div style="flex: 1;">
+                                    <h6 class="mb-1" style="font-weight: 600; color: #9ca3af;">Editar URL Pública</h6>
+                                    <small class="text-muted">Publique o clone para editar a URL</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    `}
+                    <div class="col-md-3 mb-3">
+                        <div class="file-card h-100 action-card" style="border-left: 4px solid #3b82f6;" onclick="window.location.href='/download/${cloneData.name}'">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="action-icon" style="width: 48px; height: 48px; background: rgba(59, 130, 246, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-download" style="font-size: 1.5rem; color: #3b82f6;"></i>
+                                </div>
+                                <div style="flex: 1;">
+                                    <h6 class="mb-1" style="font-weight: 600; color: var(--text-color);">Download</h6>
+                                    <small class="text-muted">Baixe o arquivo HTML do clone</small>
+                                </div>
+                                <i class="fas fa-chevron-right text-muted" style="transition: transform 0.2s;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Informações Gerais -->
                 <div class="row mb-3">
-                    <div class="col-md-6 mb-3">
+                    <div class="col-md-12 mb-3">
                         <div class="file-card">
                             <h6 class="mb-3"><i class="fas fa-info-circle me-2"></i>Informações Gerais</h6>
                             <div class="mb-2">
@@ -1680,84 +1927,16 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <div class="file-card">
-                            <h6 class="mb-3"><i class="fas fa-link me-2"></i>URLs</h6>
-                            ${cloneData.originalUrl ? `
-                                <div class="mb-3">
-                                    <small class="text-muted d-block mb-1">URL Original:</small>
-                                    <a href="${cloneData.originalUrl}" target="_blank" class="url-pill" title="${cloneData.originalUrl}">
-                                        ${cloneData.originalUrl}
-                                    </a>
-                                </div>
-                            ` : ''}
-                                                         <div class="public-url-highlight" id="publicUrl_detail_${cloneData.name}">
-                                 <div class="d-flex align-items-center justify-content-between mb-2">
-                                     <div class="d-flex align-items-center gap-2">
-                                         <i class="fas fa-globe" style="color: var(--primary);"></i>
-                                         <small class="text-muted fw-bold">URL Pública:</small>
-                                     </div>
-                                     ${cloneData.publishInfo ? `
-                                         <button type="button" class="btn btn-sm btn-outline-primary" onclick="editPublicUrl('${cloneData.name}', '${cloneData.publishInfo.friendlyId}')" id="editUrlBtn_${cloneData.name}">
-                                             <i class="fas fa-edit me-1"></i> Editar
-                                         </button>
-                                     ` : ''}
-                                 </div>
-                                 ${cloneData.publishInfo ? `
-                                     <div class="public-url-editable" id="publicUrlEditable_${cloneData.name}">
-                                         <div class="d-flex align-items-center gap-2 mb-2">
-                                             <span class="text-muted small">${window.location.origin}/p/</span>
-                                             <input type="text" 
-                                                    class="form-control form-control-sm" 
-                                                    id="friendlyIdInput_${cloneData.name}" 
-                                                    value="${cloneData.publishInfo.friendlyId}" 
-                                                    style="max-width: 200px; display: none;"
-                                                    pattern="[a-zA-Z0-9-]+"
-                                                    placeholder="minha-url">
-                                             <span class="public-url-display" id="friendlyIdDisplay_${cloneData.name}">${cloneData.publishInfo.friendlyId}</span>
-                                         </div>
-                                         <div class="url-validation-message" id="urlValidation_${cloneData.name}" style="display: none;"></div>
-                                         <div class="d-flex align-items-center gap-2 mt-2">
-                                             <a href="${cloneData.publishInfo.publicUrl}" target="_blank" class="btn btn-sm btn-primary" id="openUrlBtn_${cloneData.name}">
-                                                 <i class="fas fa-external-link-alt me-1"></i> Abrir
-                                             </a>
-                                             <button class="btn btn-sm btn-outline-secondary" onclick="copyToClipboard('${cloneData.publishInfo.publicUrl}')" title="Copiar URL">
-                                                 <i class="fas fa-copy me-1"></i> Copiar
-                                             </button>
-                                             <button type="button" class="btn btn-sm btn-success" onclick="savePublicUrl('${cloneData.name}')" id="saveUrlBtn_${cloneData.name}" style="display: none;">
-                                                 <i class="fas fa-save me-1"></i> Salvar
-                                             </button>
-                                             <button type="button" class="btn btn-sm btn-outline-secondary" onclick="cancelEditUrl('${cloneData.name}', '${cloneData.publishInfo.friendlyId}')" id="cancelUrlBtn_${cloneData.name}" style="display: none;">
-                                                 Cancelar
-                                             </button>
-                                         </div>
-                                     </div>
-                                 ` : `
-                                     <div class="public-url-box disabled">
-                                         <span class="text-muted">/p/---</span>
-                                         <small class="text-muted">Publique para obter uma URL pública</small>
-                                     </div>
-                                 `}
-                             </div>
-                        </div>
-                    </div>
                 </div>
 
-                <!-- Ações -->
+                <!-- Ações Secundárias -->
                 <div class="file-card">
-                    <h6 class="mb-3"><i class="fas fa-tools me-2"></i>Ações</h6>
+                    <h6 class="mb-3"><i class="fas fa-tools me-2"></i>Outras Ações</h6>
                     <div class="actions-section" style="border-top: none; padding-top: 0; margin-top: 0;">
                         <div class="main-actions">
-                            <a href="/download/${cloneData.name}" class="btn-download-primary">
-                                <i class="fas fa-download"></i>
-                                <span>Download</span>
-                            </a>
                             <div class="secondary-actions">
-                                <button type="button" class="btn-action-secondary" onclick="viewLinks('${cloneData.name}')">
-                                    <i class="fas fa-link"></i> Editar Links
-                                </button>
                                 <button type="button" class="btn-action-danger" onclick="deleteFile('${cloneData.name}')">
-                                    <i class="fas fa-trash"></i> Excluir
+                                    <i class="fas fa-trash"></i> Excluir Clone
                                 </button>
                             </div>
                         </div>
@@ -1926,14 +2105,221 @@
         async function viewLinks(filename) {
             try {
                 const response = await fetch(`/metadata/${filename}`);
-                if (response.ok) {
-                    const metadata = await response.json();
-                    showLinks(metadata.links, metadata.totalLinks, filename, metadata.originalUrl);
-                } else {
+                if (!response.ok) {
                     showAlert('Metadados não encontrados para este arquivo', 'warning');
+                    return;
+                }
+                
+                const metadata = await response.json();
+                const links = metadata.links || [];
+                const originalUrl = metadata.originalUrl || '';
+                
+                // Criar conteúdo do modal
+                let linksHtml = '';
+                if (links.length === 0) {
+                    linksHtml = '<p class="text-muted text-center py-4">Nenhum link encontrado nesta página.</p>';
+                } else {
+                    links.forEach((link, index) => {
+                        linksHtml += `
+                            <div class="file-card mb-3" data-link-index="${index}">
+                                <div class="view-mode">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div style="flex: 1; min-width: 0;">
+                                            <h6 class="mb-1 text-truncate" title="${link.text || 'Sem texto'}">
+                                                ${link.text || 'Sem texto'}
+                                            </h6>
+                                            <p class="small text-muted text-truncate mb-0" title="${link.url}">
+                                                ${link.url}
+                                            </p>
+                                        </div>
+                                        <span class="badge ${link.isExternal ? 'bg-warning' : 'bg-success'} ms-2">
+                                            ${link.isExternal ? 'Externo' : 'Interno'}
+                                        </span>
+                                    </div>
+                                    <a href="${link.url}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-external-link-alt me-1"></i> Visitar
+                                    </a>
+                                </div>
+                                <div class="edit-mode" style="display: none;">
+                                    <div class="mb-2">
+                                        <label class="form-label small" style="font-weight: 600;">Texto do Link:</label>
+                                        <input type="text" class="form-control link-text" value="${(link.text || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;')}" placeholder="Texto do link">
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label small" style="font-weight: 600;">URL:</label>
+                                        <input type="url" class="form-control link-url" value="${link.url.replace(/"/g, '&quot;').replace(/'/g, '&#39;')}" placeholder="https://exemplo.com" style="font-family: monospace; font-size: 0.9rem;">
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">Link ${index + 1}</small>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeLinkFromModal(${index}, '${filename}')">
+                                            <i class="fas fa-trash"></i> Remover
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                const bodyContent = `
+                    <div class="supabase-modal-section">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <label class="form-label mb-0" style="font-weight: 600;">Links Encontrados: ${links.length}</label>
+                            <button type="button" class="btn btn-lg btn-primary" id="editLinksBtnModal_${filename}" onclick="toggleEditModeModal('${filename}')" style="font-weight: 600; padding: 0.75rem 1.5rem;">
+                                <i class="fas fa-edit me-1"></i> EDITAR LINKS
+                            </button>
+                        </div>
+                        <div id="linksListModal_${filename}" style="max-height: 450px; overflow-y: auto;">
+                            ${linksHtml}
+                        </div>
+                        <div id="editBarModal_${filename}" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--card-border);">
+                            <button type="button" class="btn btn-lg btn-success" onclick="saveLinksFromModal('${filename}')" id="saveLinksBtnModal_${filename}" style="font-weight: 600; padding: 0.75rem 2rem;">
+                                <i class="fas fa-save me-1"></i> Salvar Mudanças
+                            </button>
+                            <button type="button" class="btn btn-lg btn-outline-secondary" onclick="toggleEditModeModal('${filename}')" id="cancelEditBtnModal_${filename}" style="font-weight: 600; padding: 0.75rem 2rem;">
+                                Cancelar
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                const footerContent = `
+                    <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('linksModal_${filename}').remove()">
+                        Fechar
+                    </button>
+                `;
+                
+                const modal = createSupabaseModal(
+                    `linksModal_${filename}`,
+                    'Editar Links da Página',
+                    'Modifique os links encontrados na página clonada',
+                    bodyContent,
+                    footerContent,
+                    true // Modal mais largo para links
+                );
+                
+                // Armazenar dados para uso nas funções
+                window[`linksData_${filename}`] = links;
+                window[`isEditMode_${filename}`] = false;
+                
+            } catch (error) {
+                console.error('Erro ao carregar links:', error);
+                showAlert('Erro ao carregar links', 'danger');
+            }
+        }
+        
+        function toggleEditModeModal(filename) {
+            const currentMode = window[`isEditMode_${filename}`] || false;
+            const newMode = !currentMode;
+            window[`isEditMode_${filename}`] = newMode;
+            
+            const linksContainer = document.getElementById(`linksListModal_${filename}`);
+            if (!linksContainer) {
+                console.error('Container de links não encontrado:', `linksListModal_${filename}`);
+                return;
+            }
+            
+            const viewModes = linksContainer.querySelectorAll('.view-mode');
+            const editModes = linksContainer.querySelectorAll('.edit-mode');
+            const editBar = document.getElementById(`editBarModal_${filename}`);
+            const editBtn = document.getElementById(`editLinksBtnModal_${filename}`);
+            
+            if (newMode) {
+                // Entrar em modo de edição
+                viewModes.forEach(m => m.style.display = 'none');
+                editModes.forEach(m => m.style.display = 'block');
+                if (editBar) editBar.style.display = 'block';
+                if (editBtn) editBtn.style.display = 'none';
+            } else {
+                // Sair do modo de edição
+                viewModes.forEach(m => m.style.display = 'block');
+                editModes.forEach(m => m.style.display = 'none');
+                if (editBar) editBar.style.display = 'none';
+                if (editBtn) editBtn.style.display = 'inline-block';
+            }
+        }
+        
+        function removeLinkFromModal(index, filename) {
+            if (confirm('Tem certeza que deseja remover este link?')) {
+                const card = document.querySelector(`#linksListModal_${filename} [data-link-index="${index}"]`);
+                if (card) {
+                    card.remove();
+                    
+                    // Reindexar os links restantes
+                    const remainingCards = document.querySelectorAll(`#linksListModal_${filename} [data-link-index]`);
+                    remainingCards.forEach((card, newIndex) => {
+                        card.setAttribute('data-link-index', newIndex);
+                        const removeBtn = card.querySelector('button[onclick*="removeLinkFromModal"]');
+                        if (removeBtn) {
+                            removeBtn.setAttribute('onclick', `removeLinkFromModal(${newIndex}, '${filename}')`);
+                        }
+                        // Atualizar número do link
+                        const linkNumber = card.querySelector('.text-muted');
+                        if (linkNumber) {
+                            linkNumber.textContent = `Link ${newIndex + 1}`;
+                        }
+                    });
+                }
+            }
+        }
+        
+        async function saveLinksFromModal(filename) {
+            const linksList = document.getElementById(`linksListModal_${filename}`);
+            const saveBtn = document.getElementById(`saveLinksBtnModal_${filename}`);
+            
+            if (!linksList || !saveBtn) {
+                showAlert('Erro: elementos não encontrados', 'danger');
+                return;
+            }
+            
+            const linkCards = linksList.querySelectorAll('[data-link-index]');
+            const updatedLinks = [];
+            
+            linkCards.forEach((card, index) => {
+                const textInput = card.querySelector('.link-text');
+                const urlInput = card.querySelector('.link-url');
+                
+                if (textInput && urlInput) {
+                    updatedLinks.push({
+                        text: textInput.value.trim(),
+                        url: urlInput.value.trim()
+                    });
+                }
+            });
+            
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Salvando...';
+            
+            try {
+                const response = await fetch(`/update-links/${filename}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ links: updatedLinks })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showAlert('Links atualizados com sucesso!', 'success');
+                    // Fechar modal e recarregar detalhes
+                    const modal = document.getElementById(`linksModal_${filename}`);
+                    if (modal) modal.remove();
+                    
+                    // Recarregar a tela de detalhes se estiver aberta
+                    const detailSection = document.getElementById('cloneDetailSection');
+                    if (detailSection && detailSection.style.display !== 'none') {
+                        showCloneDetail(filename);
+                    }
+                } else {
+                    showAlert(data.error || 'Erro ao salvar links', 'danger');
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = '<i class="fas fa-save me-1"></i> Salvar Mudanças';
                 }
             } catch (error) {
-                showAlert('Erro ao carregar links', 'danger');
+                console.error('Erro ao salvar links:', error);
+                showAlert('Erro de conexão ao salvar links', 'danger');
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="fas fa-save me-1"></i> Salvar Mudanças';
             }
         }
 
@@ -2497,135 +2883,191 @@
 
          // Editar URL pública
          function editPublicUrl(filename, currentFriendlyId) {
-             const input = document.getElementById(`friendlyIdInput_${filename}`);
-             const display = document.getElementById(`friendlyIdDisplay_${filename}`);
-             const editBtn = document.getElementById(`editUrlBtn_${filename}`);
-             const saveBtn = document.getElementById(`saveUrlBtn_${filename}`);
-             const cancelBtn = document.getElementById(`cancelUrlBtn_${filename}`);
-             const openBtn = document.getElementById(`openUrlBtn_${filename}`);
-             const validationDiv = document.getElementById(`urlValidation_${filename}`);
-
-             if (input && display && editBtn && saveBtn && cancelBtn) {
-                 input.style.display = 'inline-block';
-                 display.style.display = 'none';
-                 editBtn.style.display = 'none';
-                 saveBtn.style.display = 'inline-block';
-                 cancelBtn.style.display = 'inline-block';
-                 openBtn.style.display = 'none';
-                 input.value = currentFriendlyId;
-                 input.focus();
-                 input.select();
-                 validationDiv.style.display = 'none';
-
-                 // Adicionar evento de input para validação em tempo real
-                 input.addEventListener('input', function() {
-                     clearTimeout(urlValidationTimeout);
-                     const value = input.value.trim();
+             const escapedFriendlyId = (currentFriendlyId || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+             const baseUrl = window.location.origin + '/p/';
+             
+             const bodyContent = `
+                 <div class="supabase-modal-section">
+                     <div class="supabase-modal-section-description">
+                         Altere a parte final da URL pública para personalizar o endereço do seu clone.
+                     </div>
+                     <div class="mb-3">
+                         <label class="form-label" style="font-weight: 600; margin-bottom: 0.5rem; display: block;">URL Pública</label>
+                         <div class="d-flex align-items-center gap-2">
+                             <span class="text-muted small" style="white-space: nowrap;">${baseUrl}</span>
+                             <input type="text" 
+                                    class="form-control form-control-lg" 
+                                    id="friendlyIdInputModal_${filename}" 
+                                    value="${escapedFriendlyId}" 
+                                    placeholder="minha-url"
+                                    pattern="[a-zA-Z0-9-]+"
+                                    style="font-size: 1rem;">
+                         </div>
+                         <div class="url-validation-message mt-2" id="urlValidationModal_${filename}" style="display: none;"></div>
+                         <small class="text-muted d-block mt-2">
+                             Use apenas letras, números e hífen. A URL completa será: <strong>${baseUrl}<span id="urlPreview_${filename}">${escapedFriendlyId}</span></strong>
+                         </small>
+                     </div>
+                 </div>
+             `;
+             
+             const footerContent = `
+                 <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('publicUrlModal_${filename}').remove()">
+                     Cancelar
+                 </button>
+                 <button type="button" class="btn btn-success" onclick="savePublicUrlFromModal('${filename}')" id="savePublicUrlBtnModal_${filename}">
+                     <i class="fas fa-save me-1"></i> Salvar
+                 </button>
+             `;
+             
+             const modal = createSupabaseModal(
+                 `publicUrlModal_${filename}`,
+                 'Editar URL Pública',
+                 'Personalize a URL pública do seu clone',
+                 bodyContent,
+                 footerContent
+             );
+             
+             // Focar no input após animação
+             setTimeout(() => {
+                 const modalInput = document.getElementById(`friendlyIdInputModal_${filename}`);
+                 const urlPreview = document.getElementById(`urlPreview_${filename}`);
+                 
+                 if (modalInput && urlPreview) {
+                     modalInput.focus();
+                     modalInput.select();
                      
-                     if (value === currentFriendlyId) {
-                         validationDiv.style.display = 'none';
-                         saveBtn.disabled = false;
-                         return;
-                     }
-
-                     if (value.length === 0) {
-                         validationDiv.style.display = 'none';
-                         saveBtn.disabled = true;
-                         return;
-                     }
-
-                     // Validar formato
-                     if (!/^[a-zA-Z0-9-]+$/.test(value)) {
-                         validationDiv.style.display = 'block';
-                         validationDiv.className = 'url-validation-message unavailable';
-                         validationDiv.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> Use apenas letras, números e hífen';
-                         saveBtn.disabled = true;
-                         return;
-                     }
-
-                     // Mostrar mensagem de verificação
-                     validationDiv.style.display = 'block';
-                     validationDiv.className = 'url-validation-message checking';
-                     validationDiv.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Verificando disponibilidade...';
-                     saveBtn.disabled = true;
-
-                     // Debounce: aguardar 500ms após o usuário parar de digitar
-                     urlValidationTimeout = setTimeout(async () => {
-                         try {
-                             const response = await fetch(`/check-url/${encodeURIComponent(value)}`);
-                             
-                             // Verificar se a resposta foi bem-sucedida
-                             if (!response.ok) {
-                                 // Tentar parsear JSON do erro
-                                 let errorMessage = 'Erro ao verificar disponibilidade';
-                                 try {
-                                     const errorData = await response.json();
-                                     errorMessage = errorData.error || errorMessage;
-                                 } catch (e) {
-                                     // Se não conseguir parsear, usar mensagem padrão
-                                     errorMessage = `Erro ${response.status}: ${response.statusText}`;
-                                 }
-                                 
-                                 validationDiv.className = 'url-validation-message unavailable';
-                                 validationDiv.innerHTML = `<i class="fas fa-exclamation-circle me-1"></i> ${errorMessage}`;
-                                 saveBtn.disabled = true;
-                                 return;
-                             }
-
-                             // Parsear JSON da resposta
-                             let data;
-                             try {
-                                 data = await response.json();
-                             } catch (jsonError) {
-                                 console.error('Erro ao parsear resposta JSON:', jsonError);
-                                 validationDiv.className = 'url-validation-message unavailable';
-                                 validationDiv.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> Resposta inválida do servidor';
-                                 saveBtn.disabled = true;
-                                 return;
-                             }
-
-                             // Processar resposta
-                             if (data.available) {
-                                 validationDiv.className = 'url-validation-message available';
-                                 validationDiv.innerHTML = '<i class="fas fa-check-circle me-1"></i> URL disponível!';
-                                 saveBtn.disabled = false;
-                             } else {
-                                 validationDiv.className = 'url-validation-message unavailable';
-                                 validationDiv.innerHTML = `<i class="fas fa-times-circle me-1"></i> ${data.error || 'URL não disponível'}`;
-                                 saveBtn.disabled = true;
-                             }
-                         } catch (error) {
-                             console.error('Erro ao verificar URL:', error);
-                             validationDiv.className = 'url-validation-message unavailable';
-                             validationDiv.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> Erro de conexão. Verifique sua internet.';
-                             saveBtn.disabled = true;
+                     // Atualizar preview em tempo real
+                     modalInput.addEventListener('input', function() {
+                         urlPreview.textContent = modalInput.value || currentFriendlyId;
+                     });
+                     
+                     // Adicionar validação em tempo real
+                     let urlValidationTimeout = null;
+                     modalInput.addEventListener('input', function() {
+                         clearTimeout(urlValidationTimeout);
+                         const value = modalInput.value.trim();
+                         const saveBtnModal = document.getElementById(`savePublicUrlBtnModal_${filename}`);
+                         const validationDivModal = document.getElementById(`urlValidationModal_${filename}`);
+                         
+                         if (value === currentFriendlyId) {
+                             validationDivModal.style.display = 'none';
+                             saveBtnModal.disabled = false;
+                             return;
                          }
-                     }, 500);
+                         
+                         if (value.length === 0) {
+                             validationDivModal.style.display = 'block';
+                             validationDivModal.className = 'url-validation-message unavailable';
+                             validationDivModal.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> A URL não pode estar vazia';
+                             saveBtnModal.disabled = true;
+                             return;
+                         }
+                         
+                         if (!/^[a-zA-Z0-9-]+$/.test(value)) {
+                             validationDivModal.style.display = 'block';
+                             validationDivModal.className = 'url-validation-message unavailable';
+                             validationDivModal.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> Use apenas letras, números e hífen';
+                             saveBtnModal.disabled = true;
+                             return;
+                         }
+                         
+                         validationDivModal.style.display = 'block';
+                         validationDivModal.className = 'url-validation-message checking';
+                         validationDivModal.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Verificando disponibilidade...';
+                         saveBtnModal.disabled = true;
+                         
+                         urlValidationTimeout = setTimeout(async () => {
+                             try {
+                                 const response = await fetch(`/check-url/${encodeURIComponent(value)}`);
+                                 const data = await response.json();
+                                 
+                                 if (data.available) {
+                                     validationDivModal.className = 'url-validation-message available';
+                                     validationDivModal.innerHTML = '<i class="fas fa-check-circle me-1"></i> URL disponível!';
+                                     saveBtnModal.disabled = false;
+                                 } else {
+                                     validationDivModal.className = 'url-validation-message unavailable';
+                                     validationDivModal.innerHTML = `<i class="fas fa-times-circle me-1"></i> ${data.error || 'URL não disponível'}`;
+                                     saveBtnModal.disabled = true;
+                                 }
+                             } catch (error) {
+                                 console.error('Erro ao verificar URL:', error);
+                                 validationDivModal.className = 'url-validation-message unavailable';
+                                 validationDivModal.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> Erro de conexão';
+                                 saveBtnModal.disabled = true;
+                             }
+                         }, 500);
+                     });
+                 }
+             }, 100);
+         }
+         
+         async function savePublicUrlFromModal(filename) {
+             const input = document.getElementById(`friendlyIdInputModal_${filename}`);
+             const saveBtn = document.getElementById(`savePublicUrlBtnModal_${filename}`);
+             
+             if (!input || !saveBtn) {
+                 showAlert('Erro: elementos não encontrados', 'danger');
+                 return;
+             }
+             
+             const newFriendlyId = input.value.trim();
+             
+             if (!newFriendlyId || !/^[a-zA-Z0-9-]+$/.test(newFriendlyId)) {
+                 showAlert('Formato inválido. Use apenas letras, números e hífen', 'danger');
+                 return;
+             }
+             
+             saveBtn.disabled = true;
+             saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Salvando...';
+             
+             try {
+                 const response = await fetch(`/publish/${filename}`, {
+                     method: 'PUT',
+                     headers: { 'Content-Type': 'application/json' },
+                     body: JSON.stringify({ friendlyId: newFriendlyId })
                  });
+                 
+                 const data = await response.json();
+                 
+                 if (response.ok) {
+                     showAlert('URL pública atualizada com sucesso!', 'success');
+                     
+                     // Atualizar dados no objeto clonesData
+                     if (clonesData[filename]) {
+                         clonesData[filename].publishInfo = {
+                             publicUrl: data.publicUrl,
+                             friendlyId: data.friendlyId
+                         };
+                     }
+                     
+                     // Fechar modal
+                     const modal = document.getElementById(`publicUrlModal_${filename}`);
+                     if (modal) modal.remove();
+                     
+                     // Recarregar a tela de detalhes se estiver aberta
+                     const detailSection = document.getElementById('cloneDetailSection');
+                     if (detailSection && detailSection.style.display !== 'none') {
+                         showCloneDetail(filename);
+                     }
+                 } else {
+                     showAlert(data.error || 'Erro ao atualizar URL', 'danger');
+                     saveBtn.disabled = false;
+                     saveBtn.innerHTML = '<i class="fas fa-save me-1"></i> Salvar';
+                 }
+             } catch (error) {
+                 console.error('Erro ao salvar URL:', error);
+                 showAlert('Erro de conexão ao atualizar URL', 'danger');
+                 saveBtn.disabled = false;
+                 saveBtn.innerHTML = '<i class="fas fa-save me-1"></i> Salvar';
              }
          }
 
-         // Cancelar edição de URL
+         // Cancelar edição de URL (mantida para compatibilidade)
          function cancelEditUrl(filename, originalFriendlyId) {
-             const input = document.getElementById(`friendlyIdInput_${filename}`);
-             const display = document.getElementById(`friendlyIdDisplay_${filename}`);
-             const editBtn = document.getElementById(`editUrlBtn_${filename}`);
-             const saveBtn = document.getElementById(`saveUrlBtn_${filename}`);
-             const cancelBtn = document.getElementById(`cancelUrlBtn_${filename}`);
-             const openBtn = document.getElementById(`openUrlBtn_${filename}`);
-             const validationDiv = document.getElementById(`urlValidation_${filename}`);
-
-             if (input && display && editBtn && saveBtn && cancelBtn) {
-                 input.style.display = 'none';
-                 display.style.display = 'inline';
-                 editBtn.style.display = 'inline-block';
-                 saveBtn.style.display = 'none';
-                 cancelBtn.style.display = 'none';
-                 openBtn.style.display = 'inline-block';
-                 input.value = originalFriendlyId;
-                 validationDiv.style.display = 'none';
-                 clearTimeout(urlValidationTimeout);
-             }
+             // Função mantida para compatibilidade, mas não é mais usada
+             // pois agora usamos modal
          }
 
          // Salvar URL pública
@@ -2687,121 +3129,250 @@
              }
          }
 
+         // Criar modal estilo Supabase
+         function createSupabaseModal(id, title, subtitle, bodyContent, footerContent, isWide = false) {
+             // Remover modal existente se houver
+             const existing = document.getElementById(id);
+             if (existing) existing.remove();
+             
+             const overlay = document.createElement('div');
+             overlay.className = 'supabase-modal-overlay';
+             overlay.id = id;
+             overlay.onclick = function(e) {
+                 if (e.target === overlay) {
+                     overlay.remove();
+                 }
+             };
+             
+             const modal = document.createElement('div');
+             modal.className = isWide ? 'supabase-modal wide' : 'supabase-modal';
+             
+             modal.innerHTML = `
+                 <div class="supabase-modal-header">
+                     <div>
+                         <h3 class="supabase-modal-title">${title}</h3>
+                         ${subtitle ? `<p class="supabase-modal-subtitle">${subtitle}</p>` : ''}
+                     </div>
+                     <button type="button" class="supabase-modal-close" onclick="document.getElementById('${id}').remove()">
+                         ×
+                     </button>
+                 </div>
+                 <div class="supabase-modal-body">
+                     ${bodyContent}
+                 </div>
+                 <div class="supabase-modal-footer">
+                     ${footerContent}
+                 </div>
+             `;
+             
+             overlay.appendChild(modal);
+             document.body.appendChild(overlay);
+             
+             return overlay;
+         }
+
          // Editar nome do projeto
          function editProjectName(filename, currentProjectName) {
-             console.log('editProjectName chamada com:', filename, currentProjectName);
-             const displayContainer = document.getElementById(`projectNameDisplay_${filename}`)?.parentElement;
-             const editContainer = document.getElementById(`projectNameEditContainer_${filename}`);
-             const input = document.getElementById(`projectNameInput_${filename}`);
-             const editBtn = document.getElementById(`editProjectNameBtn_${filename}`);
-             const saveBtn = document.getElementById(`saveProjectNameBtn_${filename}`);
-             const cancelBtn = document.getElementById(`cancelProjectNameBtn_${filename}`);
-             const validationDiv = document.getElementById(`projectNameValidation_${filename}`);
-
-             console.log('Elementos encontrados:', { displayContainer, editContainer, input, editBtn, saveBtn, cancelBtn });
-
-             if (displayContainer && editContainer && input && editBtn && saveBtn && cancelBtn) {
-                 displayContainer.style.display = 'none';
-                 editContainer.style.display = 'flex';
-                 input.value = currentProjectName || '';
-                 input.focus();
-                 input.select();
-                 validationDiv.style.display = 'none';
-                 
-                 // Habilitar botão salvar inicialmente se houver um nome válido
-                 const initialValue = (currentProjectName || '').trim();
-                 if (initialValue.length > 0 && /^[a-zA-Z0-9\s_-]+$/.test(initialValue)) {
-                     saveBtn.disabled = false;
-                 } else {
-                     saveBtn.disabled = false; // Sempre habilitar, a validação será feita no saveProjectName
-                 }
-
-                 // Adicionar evento de input para validação em tempo real
-                 input.addEventListener('input', function() {
-                     clearTimeout(projectNameValidationTimeout);
-                     const value = input.value.trim();
+             const escapedCurrentName = (currentProjectName || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+             
+             // Obter URL original do clone
+             const cloneData = clonesData[filename];
+             const originalUrl = cloneData ? (cloneData.originalUrl || '') : '';
+             const escapedOriginalUrl = originalUrl.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+             
+             const bodyContent = `
+                 <div class="supabase-modal-section">
+                     ${originalUrl ? `
+                         <div class="mb-3" style="padding: 0.5rem; background: var(--card-border); border-radius: 6px; border-left: 3px solid var(--primary);">
+                             <small class="text-muted d-block mb-1" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em;">URL Origem</small>
+                             <a href="${escapedOriginalUrl}" target="_blank" class="text-decoration-none" style="font-size: 0.85rem; color: var(--text-color); word-break: break-all;">
+                                 ${escapedOriginalUrl}
+                                 <i class="fas fa-external-link-alt ms-1" style="font-size: 0.7rem; opacity: 0.6;"></i>
+                             </a>
+                         </div>
+                     ` : ''}
+                     <div class="mb-3">
+                         <label class="form-label" style="font-weight: 600; margin-bottom: 0.5rem; display: block;">Nome do Projeto</label>
+                         <input type="text" 
+                                class="form-control form-control-lg" 
+                                id="projectNameInputModal_${filename}" 
+                                value="${escapedCurrentName}" 
+                                placeholder="Digite o nome do projeto"
+                                style="font-size: 1rem;">
+                         <div class="project-name-validation-message mt-2" id="projectNameValidationModal_${filename}" style="display: none;"></div>
+                     </div>
+                 </div>
+             `;
+             
+             const footerContent = `
+                 <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('projectNameModal_${filename}').remove()">
+                     Cancelar
+                 </button>
+                 <button type="button" class="btn btn-success" onclick="saveProjectNameFromModal('${filename}')" id="saveProjectNameBtnModal_${filename}">
+                     <i class="fas fa-save me-1"></i> Salvar
+                 </button>
+             `;
+             
+             const modal = createSupabaseModal(
+                 `projectNameModal_${filename}`,
+                 'Alterar Nome do Projeto',
+                 'Edite o nome do projeto para facilitar a identificação',
+                 bodyContent,
+                 footerContent
+             );
+             
+             // Focar no input após animação
+             setTimeout(() => {
+                 const modalInput = document.getElementById(`projectNameInputModal_${filename}`);
+                 if (modalInput) {
+                     modalInput.focus();
+                     modalInput.select();
                      
-                     if (value === (currentProjectName || '')) {
-                         validationDiv.style.display = 'none';
-                         saveBtn.disabled = false;
-                         return;
-                     }
-
-                     if (value.length === 0) {
-                         validationDiv.style.display = 'none';
-                         saveBtn.disabled = true;
-                         return;
-                     }
-
-                     // Validar formato
-                     if (!/^[a-zA-Z0-9\s_-]+$/.test(value)) {
-                         validationDiv.style.display = 'block';
-                         validationDiv.className = 'project-name-validation-message unavailable';
-                         validationDiv.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> Use apenas letras, números, espaços, hífens e underscores';
-                         saveBtn.disabled = true;
-                         return;
-                     }
-
-                     // Mostrar mensagem de verificação
-                     validationDiv.style.display = 'block';
-                     validationDiv.className = 'project-name-validation-message checking';
-                     validationDiv.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Verificando disponibilidade...';
-                     saveBtn.disabled = true;
-
-                     // Debounce: aguardar 500ms após o usuário parar de digitar
-                     projectNameValidationTimeout = setTimeout(async () => {
-                         try {
-                             const response = await fetch(`/check-project-name/${encodeURIComponent(value)}?filename=${encodeURIComponent(filename)}`);
-                             
-                             if (!response.ok) {
-                                 let errorMessage = 'Erro ao verificar disponibilidade';
-                                 try {
-                                     const errorData = await response.json();
-                                     errorMessage = errorData.error || errorMessage;
-                                 } catch (e) {
-                                     errorMessage = `Erro ${response.status}: ${response.statusText}`;
-                                 }
-                                 
-                                 validationDiv.className = 'project-name-validation-message unavailable';
-                                 validationDiv.innerHTML = `<i class="fas fa-exclamation-circle me-1"></i> ${errorMessage}`;
-                                 saveBtn.disabled = true;
-                                 return;
-                             }
-
-                             let data;
-                             try {
-                                 data = await response.json();
-                             } catch (jsonError) {
-                                 console.error('Erro ao parsear resposta JSON:', jsonError);
-                                 validationDiv.className = 'project-name-validation-message unavailable';
-                                 validationDiv.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> Resposta inválida do servidor';
-                                 saveBtn.disabled = true;
-                                 return;
-                             }
-                             
-                             if (data.available) {
-                                 validationDiv.className = 'project-name-validation-message available';
-                                 validationDiv.innerHTML = '<i class="fas fa-check-circle me-1"></i> Nome disponível!';
-                                 saveBtn.disabled = false;
-                             } else {
-                                 validationDiv.className = 'project-name-validation-message unavailable';
-                                 validationDiv.innerHTML = `<i class="fas fa-times-circle me-1"></i> ${data.error || 'Nome não disponível'}`;
-                                 saveBtn.disabled = true;
-                             }
-                         } catch (error) {
-                             console.error('Erro ao verificar nome do projeto:', error);
-                             validationDiv.className = 'project-name-validation-message unavailable';
-                             validationDiv.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> Erro de conexão. Verifique sua internet.';
-                             saveBtn.disabled = true;
+                     // Adicionar validação em tempo real
+                     let validationTimeout = null;
+                     modalInput.addEventListener('input', function() {
+                         clearTimeout(validationTimeout);
+                         const value = modalInput.value.trim();
+                         const saveBtnModal = document.getElementById(`saveProjectNameBtnModal_${filename}`);
+                         const validationDivModal = document.getElementById(`projectNameValidationModal_${filename}`);
+                         
+                         if (value === (currentProjectName || '')) {
+                             validationDivModal.style.display = 'none';
+                             saveBtnModal.disabled = false;
+                             return;
                          }
-                     }, 500);
+                         
+                         if (value.length === 0) {
+                             validationDivModal.style.display = 'none';
+                             saveBtnModal.disabled = true;
+                             return;
+                         }
+                         
+                         if (!/^[a-zA-Z0-9\s_-]+$/.test(value)) {
+                             validationDivModal.style.display = 'block';
+                             validationDivModal.className = 'project-name-validation-message unavailable';
+                             validationDivModal.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> Use apenas letras, números, espaços, hífens e underscores';
+                             saveBtnModal.disabled = true;
+                             return;
+                         }
+                         
+                         validationDivModal.style.display = 'block';
+                         validationDivModal.className = 'project-name-validation-message checking';
+                         validationDivModal.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Verificando disponibilidade...';
+                         saveBtnModal.disabled = true;
+                         
+                         validationTimeout = setTimeout(async () => {
+                             try {
+                                 const response = await fetch(`/check-project-name/${encodeURIComponent(value)}?filename=${encodeURIComponent(filename)}`);
+                                 const data = await response.json();
+                                 
+                                 if (data.available) {
+                                     validationDivModal.className = 'project-name-validation-message available';
+                                     validationDivModal.innerHTML = '<i class="fas fa-check-circle me-1"></i> Nome disponível!';
+                                     saveBtnModal.disabled = false;
+                                 } else {
+                                     validationDivModal.className = 'project-name-validation-message unavailable';
+                                     validationDivModal.innerHTML = `<i class="fas fa-times-circle me-1"></i> ${data.error || 'Nome não disponível'}`;
+                                     saveBtnModal.disabled = true;
+                                 }
+                             } catch (error) {
+                                 console.error('Erro ao verificar nome:', error);
+                                 validationDivModal.className = 'project-name-validation-message unavailable';
+                                 validationDivModal.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> Erro de conexão';
+                                 saveBtnModal.disabled = true;
+                             }
+                         }, 500);
+                     });
+                 }
+             }, 100);
+         }
+
+         // Fechar modal de edição de nome do projeto
+         function closeProjectNameModal(filename, originalProjectName) {
+             const modal = document.getElementById(`projectNameModal_${filename}`);
+             if (modal) {
+                 modal.remove();
+             }
+         }
+
+         // Salvar nome do projeto a partir do modal
+         async function saveProjectNameFromModal(filename) {
+             const input = document.getElementById(`projectNameInputModal_${filename}`);
+             const saveBtn = document.getElementById(`saveProjectNameBtnModal_${filename}`);
+             
+             if (!input || !saveBtn) {
+                 showAlert('Erro: elementos não encontrados', 'danger');
+                 return;
+             }
+             
+             const newProjectName = input.value.trim();
+             
+             if (newProjectName.length > 0 && !/^[a-zA-Z0-9\s_-]+$/.test(newProjectName)) {
+                 showAlert('Formato inválido. Use apenas letras, números, espaços, hífens e underscores', 'danger');
+                 return;
+             }
+             
+             saveBtn.disabled = true;
+             saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Salvando...';
+             
+             try {
+                 const response = await fetch(`/clone/${encodeURIComponent(filename)}/project-name`, {
+                     method: 'PUT',
+                     headers: { 'Content-Type': 'application/json' },
+                     body: JSON.stringify({ projectName: newProjectName })
                  });
+                 
+                 const data = await response.json();
+                 
+                 if (response.ok) {
+                     showAlert('Nome do projeto atualizado com sucesso!', 'success');
+                     
+                     // Atualizar dados no objeto clonesData
+                     if (clonesData[filename]) {
+                         clonesData[filename].projectName = data.projectName;
+                     }
+                     
+                     // Atualizar título
+                     const titleSpan = document.querySelector('#cloneDetailTitle span');
+                     if (titleSpan) {
+                         titleSpan.textContent = data.projectName || filename;
+                     }
+                     
+                     // Atualizar nome no card de ação
+                     const actionCard = document.querySelector(`[onclick*="editProjectName('${filename}'"]`);
+                     if (actionCard) {
+                         const nameStrong = actionCard.querySelector('strong');
+                         if (nameStrong) {
+                             nameStrong.textContent = data.projectName || filename;
+                         }
+                     }
+                     
+                     // Atualizar lista do dashboard
+                     const listItem = document.querySelector(`.clone-item[data-clone-name="${filename.toLowerCase()}"] .clone-name`);
+                     if (listItem) {
+                         listItem.textContent = data.projectName || filename;
+                     }
+                     
+                     // Fechar modal
+                     const modal = document.getElementById(`projectNameModal_${filename}`);
+                     if (modal) modal.remove();
+                 } else {
+                     const errorMsg = data && data.error ? data.error : 'Erro ao atualizar nome do projeto';
+                     showAlert(errorMsg, 'danger');
+                     saveBtn.disabled = false;
+                     saveBtn.innerHTML = '<i class="fas fa-save me-1"></i> Salvar';
+                 }
+             } catch (error) {
+                 console.error('Erro ao salvar nome do projeto:', error);
+                 showAlert('Erro de conexão ao atualizar nome do projeto. Verifique sua internet.', 'danger');
+                 saveBtn.disabled = false;
+                 saveBtn.innerHTML = '<i class="fas fa-save me-1"></i> Salvar';
              }
          }
 
          // Cancelar edição de nome do projeto
          function cancelEditProjectName(filename, originalProjectName) {
-             const displayContainer = document.getElementById(`projectNameDisplay_${filename}`).parentElement;
+             const displayContainer = document.getElementById(`projectNameDisplay_${filename}`)?.parentElement;
              const editContainer = document.getElementById(`projectNameEditContainer_${filename}`);
              const input = document.getElementById(`projectNameInput_${filename}`);
              const validationDiv = document.getElementById(`projectNameValidation_${filename}`);
