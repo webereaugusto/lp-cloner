@@ -115,7 +115,7 @@ async function getUserById(id) {
 
 // ========== FUNÇÕES DE CLONES ==========
 
-async function createClone(userId, filename, originalUrl, fileSize, totalLinks, projectName = null) {
+async function createClone(userId, filename, originalUrl, fileSize, totalLinks, projectName = null, htmlContent = null) {
     try {
         const { data, error } = await supabase
             .from('clones')
@@ -126,7 +126,8 @@ async function createClone(userId, filename, originalUrl, fileSize, totalLinks, 
                     original_url: originalUrl, 
                     file_size: fileSize, 
                     total_links: totalLinks,
-                    project_name: projectName
+                    project_name: projectName,
+                    html_content: htmlContent
                 }
             ])
             .select()

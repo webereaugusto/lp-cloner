@@ -342,8 +342,8 @@ async function transferPendingClones(userId, sessionId) {
                 const userMetadataPath = path.join(htmlDir, `${newFilename}.json`);
                 fs.writeFileSync(userMetadataPath, JSON.stringify(metadata, null, 2));
 
-                // Salvar no banco (usar tamanho do arquivo corrigido)
-                await createClone(userId, newFilename, metadata.originalUrl || '', htmlWithCharset.length, metadata.totalLinks || 0);
+                // Salvar no banco (usar tamanho do arquivo corrigido e HTML completo)
+                await createClone(userId, newFilename, metadata.originalUrl || '', htmlWithCharset.length, metadata.totalLinks || 0, null, htmlWithCharset);
 
                 // Deletar arquivos temporários
                 fs.unlinkSync(tempPath);
@@ -532,8 +532,8 @@ app.post('/copy', requireAuth, async (req, res) => {
         };
         fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2));
 
-        // Salvar no banco (usar tamanho do arquivo corrigido)
-        await createClone(userId, filename, url, htmlWithCharset.length, links.length);
+        // Salvar no banco (usar tamanho do arquivo corrigido e HTML completo)
+        await createClone(userId, filename, url, htmlWithCharset.length, links.length, null, htmlWithCharset);
 
         res.json({
             success: true,
@@ -561,32 +561,65 @@ app.post('/copy', requireAuth, async (req, res) => {
 });
 
 // Servir HTML salvos
-app.get('/html/:filename', requireAuth, (req, res) => {
+app.get('/html/:filename', requireAuth, async (req, res) => {
     const filename = req.params.filename;
     const userId = req.session.userId;
-    const htmlDir = getUserHtmlDir(userId);
-    const filePath = path.join(htmlDir, filename);
+    
+    try {
+        // Buscar clone do banco de dados
+        const clone = await getCloneByFilename(filename, userId);
+        
+        if (clone && clone.html_content) {
+            // Priorizar HTML do banco de dados (persistente)
+            res.setHeader('Content-Type', 'text/html; charset=utf-8');
+            return res.send(clone.html_content);
+        }
+        
+        // Fallback: tentar buscar do sistema de arquivos
+        const htmlDir = getUserHtmlDir(userId);
+        const filePath = path.join(htmlDir, filename);
 
-    if (fs.existsSync(filePath)) {
-        res.sendFile(filePath);
-    } else {
-        res.status(404).send('Arquivo não encontrado');
+        if (fs.existsSync(filePath)) {
+            res.sendFile(filePath);
+        } else {
+            res.status(404).send('Arquivo não encontrado');
+        }
+    } catch (error) {
+        console.error('Erro ao servir HTML:', error);
+        res.status(500).send('Erro ao servir arquivo');
     }
 });
 
 // Download
-app.get('/download/:filename', requireAuth, (req, res) => {
+app.get('/download/:filename', requireAuth, async (req, res) => {
     const filename = req.params.filename;
     const userId = req.session.userId;
-    const htmlDir = getUserHtmlDir(userId);
-    const filePath = path.join(htmlDir, filename);
+    
+    try {
+        // Buscar clone do banco de dados
+        const clone = await getCloneByFilename(filename, userId);
+        
+        if (clone && clone.html_content) {
+            // Priorizar HTML do banco de dados (persistente)
+            res.setHeader('Content-Type', 'text/html; charset=utf-8');
+            res.setHeader('Content-Disposition', 'attachment; filename="index.html"');
+            return res.send(clone.html_content);
+        }
+        
+        // Fallback: tentar buscar do sistema de arquivos
+        const htmlDir = getUserHtmlDir(userId);
+        const filePath = path.join(htmlDir, filename);
 
-    if (!fs.existsSync(filePath)) {
-        return res.status(404).send('Arquivo não encontrado');
+        if (!fs.existsSync(filePath)) {
+            return res.status(404).send('Arquivo não encontrado');
+        }
+
+        // Sempre baixar como index.html
+        res.download(filePath, 'index.html');
+    } catch (error) {
+        console.error('Erro ao fazer download:', error);
+        res.status(500).send('Erro ao fazer download');
     }
-
-    // Sempre baixar como index.html
-    res.download(filePath, 'index.html');
 });
 
 // Metadados
@@ -877,44 +910,33 @@ app.get('/p/:id', async (req, res) => {
             return res.status(404).send('Dados da publicação incompletos');
         }
 
+        // Buscar o clone para obter o HTML do banco de dados
+        const clone = await getCloneByFilename(publication.filename, publication.user_id);
+        
+        if (!clone) {
+            console.error(`Clone não encontrado: ${publication.filename} para user ${publication.user_id}`);
+            return res.status(404).send('Clone não encontrado');
+        }
+
+        // Priorizar HTML do banco de dados (persistente)
+        if (clone.html_content) {
+            console.log(`Servindo HTML do banco de dados para ${publication.filename}`);
+            res.setHeader('Content-Type', 'text/html; charset=utf-8');
+            return res.send(clone.html_content);
+        }
+
+        // Fallback: tentar buscar do sistema de arquivos (para compatibilidade)
         const htmlDir = getUserHtmlDir(publication.user_id);
         const filePath = path.join(htmlDir, publication.filename);
 
-        console.log(`Tentando acessar arquivo: ${filePath}`);
-        console.log(`Arquivo existe? ${fs.existsSync(filePath)}`);
-        console.log(`Diretório existe? ${fs.existsSync(htmlDir)}`);
+        console.log(`HTML não encontrado no banco, tentando arquivo: ${filePath}`);
 
         if (fs.existsSync(filePath)) {
+            console.log(`Servindo HTML do sistema de arquivos para ${publication.filename}`);
             res.sendFile(filePath);
         } else {
-            console.error(`Arquivo não encontrado no caminho: ${filePath}`);
-            console.error(`Diretório base (__dirname): ${__dirname}`);
-            console.error(`Diretório html_copies existe? ${fs.existsSync(path.join(__dirname, 'html_copies'))}`);
-            
-            if (fs.existsSync(htmlDir)) {
-                try {
-                    const files = fs.readdirSync(htmlDir);
-                    console.error(`Arquivos no diretório ${htmlDir}: ${files.join(', ')}`);
-                } catch (err) {
-                    console.error(`Erro ao listar arquivos do diretório: ${err.message}`);
-                }
-            } else {
-                console.error(`Diretório ${htmlDir} não existe`);
-                // Verificar se o diretório pai existe
-                const parentDir = path.dirname(htmlDir);
-                console.error(`Diretório pai existe? ${fs.existsSync(parentDir)}`);
-                if (fs.existsSync(parentDir)) {
-                    try {
-                        const parentFiles = fs.readdirSync(parentDir);
-                        console.error(`Conteúdo do diretório pai: ${parentFiles.join(', ')}`);
-                    } catch (err) {
-                        console.error(`Erro ao listar diretório pai: ${err.message}`);
-                    }
-                }
-            }
-            
-            // No Render, arquivos podem ser perdidos em deploys. Retornar erro mais informativo
-            res.status(404).send('Arquivo não encontrado. O arquivo pode ter sido perdido após um deploy. Por favor, recrie o clone.');
+            console.error(`Arquivo não encontrado no sistema de arquivos: ${filePath}`);
+            res.status(404).send('Arquivo HTML não encontrado. O clone pode ter sido criado antes da migração. Por favor, recrie o clone.');
         }
     } catch (error) {
         console.error('Erro ao visualizar publicação:', error);
