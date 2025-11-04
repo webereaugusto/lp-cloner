@@ -2113,6 +2113,28 @@
                             if (statusIndicator) {
                                 statusIndicator.className = 'clone-status-indicator published';
                             }
+                            
+                            // Mostrar botão "Abrir URL pública" se não existir
+                            const actionsDiv = cloneItem.querySelector('.clone-actions');
+                            if (actionsDiv) {
+                                const existingPublicUrlBtn = actionsDiv.querySelector('a[href*="/p/"]');
+                                if (!existingPublicUrlBtn) {
+                                    // Adicionar botão de URL pública após o botão de download
+                                    const downloadBtn = actionsDiv.querySelector('a[href*="/download/"]');
+                                    if (downloadBtn) {
+                                        const publicUrlBtn = document.createElement('a');
+                                        publicUrlBtn.href = data.publicUrl;
+                                        publicUrlBtn.target = '_blank';
+                                        publicUrlBtn.className = 'clone-action-btn';
+                                        publicUrlBtn.title = 'Abrir URL pública';
+                                        publicUrlBtn.innerHTML = '<i class="fas fa-external-link-alt"></i>';
+                                        downloadBtn.insertAdjacentElement('afterend', publicUrlBtn);
+                                    }
+                                } else {
+                                    // Atualizar href do botão existente
+                                    existingPublicUrlBtn.href = data.publicUrl;
+                                }
+                            }
                         }
                         
                         // Atualizar URL pública na lista
@@ -2179,6 +2201,15 @@
                             const statusIndicator = cloneItem.querySelector('.clone-status-indicator');
                             if (statusIndicator) {
                                 statusIndicator.className = 'clone-status-indicator draft';
+                            }
+                            
+                            // Remover botão "Abrir URL pública" se existir
+                            const actionsDiv = cloneItem.querySelector('.clone-actions');
+                            if (actionsDiv) {
+                                const publicUrlBtn = actionsDiv.querySelector('a[href*="/p/"]');
+                                if (publicUrlBtn) {
+                                    publicUrlBtn.remove();
+                                }
                             }
                         }
                         
