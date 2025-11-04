@@ -2058,12 +2058,21 @@
 
         async function togglePublishStatus(filename, isPublishing) {
             // Encontrar elementos tanto na lista quanto na tela de detalhes
-            const switchInput = document.getElementById(`switch_${filename}`) || document.getElementById(`switch_detail_${filename}`);
-            const label = document.getElementById(`label_${filename}`) || document.getElementById(`label_detail_${filename}`);
-            const publicUrlDiv = document.getElementById(`publicUrl_${filename}`) || document.getElementById(`publicUrl_detail_${filename}`);
+            const switchInputList = document.getElementById(`switch_${filename}`);
+            const switchInputDetail = document.getElementById(`switch_detail_${filename}`);
+            const switchInput = switchInputList || switchInputDetail;
             
-            // Desabilitar temporariamente
-            if (switchInput) switchInput.disabled = true;
+            const labelList = document.getElementById(`label_${filename}`);
+            const labelDetail = document.getElementById(`label_detail_${filename}`);
+            const publicUrlDiv = document.getElementById(`publicUrl_${filename}`);
+            
+            // Verificar se a tela de detalhes está aberta
+            const detailSection = document.getElementById('cloneDetailSection');
+            const isDetailViewOpen = detailSection && detailSection.style.display !== 'none';
+            
+            // Desabilitar temporariamente ambos os switches
+            if (switchInputList) switchInputList.disabled = true;
+            if (switchInputDetail) switchInputDetail.disabled = true;
 
             try {
                 if (isPublishing) {
@@ -2077,13 +2086,36 @@
                         const fullUrl = window.location.origin + data.publicUrl;
                         showAlert(`Clone publicado com sucesso! URL: ${fullUrl}`, 'success');
                         
-                        // Atualizar label (tanto na lista quanto na tela de detalhes)
-                        if (label) {
-                            label.textContent = 'Publicado';
-                            label.className = 'status-label published';
+                        // Atualizar dados no objeto clonesData PRIMEIRO
+                        if (clonesData[filename]) {
+                            clonesData[filename].publishInfo = {
+                                publicUrl: data.publicUrl,
+                                friendlyId: data.friendlyId
+                            };
                         }
                         
-                        // Atualizar URL pública com novo layout (tanto na lista quanto na tela de detalhes)
+                        // Atualizar label na lista
+                        if (labelList) {
+                            labelList.textContent = 'Publicado';
+                            labelList.className = 'status-label published';
+                        }
+                        
+                        // Atualizar label na tela de detalhes
+                        if (labelDetail) {
+                            labelDetail.textContent = 'Publicado';
+                            labelDetail.className = 'status-label published';
+                        }
+                        
+                        // Atualizar indicador de status na lista do dashboard
+                        const cloneItem = document.querySelector(`.clone-item[data-clone-name="${filename.toLowerCase()}"]`);
+                        if (cloneItem) {
+                            const statusIndicator = cloneItem.querySelector('.clone-status-indicator');
+                            if (statusIndicator) {
+                                statusIndicator.className = 'clone-status-indicator published';
+                            }
+                        }
+                        
+                        // Atualizar URL pública na lista
                         if (publicUrlDiv) {
                             publicUrlDiv.innerHTML = `
                                 <div class="d-flex align-items-center gap-2 mb-2">
@@ -2102,19 +2134,17 @@
                             `;
                         }
                         
-                        // Atualizar dados no objeto clonesData
-                        if (clonesData[filename]) {
-                            clonesData[filename].publishInfo = {
-                                publicUrl: data.publicUrl,
-                                friendlyId: data.friendlyId
-                            };
+                        // Se a tela de detalhes estiver aberta, recarregar ela completamente
+                        if (isDetailViewOpen) {
+                            showCloneDetail(filename);
                         }
                         
                         // Atualizar estatísticas no dashboard dinamicamente
                         updateDashboardStats(1, -1); // Incrementa publicados, decrementa rascunhos
                     } else {
                         showAlert(data.error || 'Erro ao publicar clone', 'danger');
-                        if (switchInput) switchInput.checked = false;
+                        if (switchInputList) switchInputList.checked = false;
+                        if (switchInputDetail) switchInputDetail.checked = false;
                     }
                 } else {
                     const response = await fetch(`/publish/${filename}`, {
@@ -2126,13 +2156,33 @@
                     if (response.ok) {
                         showAlert('Clone movido para Rascunho com sucesso!', 'success');
                         
-                        // Atualizar label (tanto na lista quanto na tela de detalhes)
-                        if (label) {
-                            label.textContent = 'Rascunho';
-                            label.className = 'status-label draft';
+                        // Atualizar dados no objeto clonesData PRIMEIRO
+                        if (clonesData[filename]) {
+                            clonesData[filename].publishInfo = null;
                         }
                         
-                        // Atualizar URL pública para modo rascunho (tanto na lista quanto na tela de detalhes)
+                        // Atualizar label na lista
+                        if (labelList) {
+                            labelList.textContent = 'Rascunho';
+                            labelList.className = 'status-label draft';
+                        }
+                        
+                        // Atualizar label na tela de detalhes
+                        if (labelDetail) {
+                            labelDetail.textContent = 'Rascunho';
+                            labelDetail.className = 'status-label draft';
+                        }
+                        
+                        // Atualizar indicador de status na lista do dashboard
+                        const cloneItem = document.querySelector(`.clone-item[data-clone-name="${filename.toLowerCase()}"]`);
+                        if (cloneItem) {
+                            const statusIndicator = cloneItem.querySelector('.clone-status-indicator');
+                            if (statusIndicator) {
+                                statusIndicator.className = 'clone-status-indicator draft';
+                            }
+                        }
+                        
+                        // Atualizar URL pública na lista
                         if (publicUrlDiv) {
                             const urlToShow = data.publicUrl || '/p/---';
                             publicUrlDiv.innerHTML = `
@@ -2147,23 +2197,26 @@
                             `;
                         }
                         
-                        // Atualizar dados no objeto clonesData
-                        if (clonesData[filename]) {
-                            clonesData[filename].publishInfo = null;
+                        // Se a tela de detalhes estiver aberta, recarregar ela completamente
+                        if (isDetailViewOpen) {
+                            showCloneDetail(filename);
                         }
                         
                         // Atualizar estatísticas no dashboard dinamicamente
                         updateDashboardStats(-1, 1); // Decrementa publicados, incrementa rascunhos
                     } else {
                         showAlert(data.error || 'Erro ao despublicar', 'danger');
-                        if (switchInput) switchInput.checked = true;
+                        if (switchInputList) switchInputList.checked = true;
+                        if (switchInputDetail) switchInputDetail.checked = true;
                     }
                 }
             } catch (error) {
                 showAlert('Erro ao alterar status', 'danger');
-                switchInput.checked = !isPublishing;
+                if (switchInputList) switchInputList.checked = !isPublishing;
+                if (switchInputDetail) switchInputDetail.checked = !isPublishing;
             } finally {
-                switchInput.disabled = false;
+                if (switchInputList) switchInputList.disabled = false;
+                if (switchInputDetail) switchInputDetail.disabled = false;
             }
         }
 
