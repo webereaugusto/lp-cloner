@@ -139,6 +139,40 @@
             margin-bottom: 2rem;
         }
 
+        .top-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .add-clone-btn-small {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .add-clone-btn-small:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+            color: white !important;
+        }
+
+        .add-clone-btn-small i {
+            font-size: 0.9rem;
+        }
+
         .page-title {
             font-size: 1.75rem;
             font-weight: 600;
@@ -434,10 +468,98 @@
             justify-content: center;
         }
 
-        .copy-url-btn:hover {
-            background: #5599ff;
-            transform: scale(1.05);
-        }
+                 .copy-url-btn:hover {
+             background: #5599ff;
+             transform: scale(1.05);
+         }
+
+         /* URL Pública Editável */
+         .public-url-editable {
+             background: var(--card-bg);
+             border: 1px solid var(--card-border);
+             border-radius: 8px;
+             padding: 1rem;
+         }
+
+         .public-url-display {
+             color: var(--primary);
+             font-weight: 600;
+             font-size: 1rem;
+             padding: 0.25rem 0.5rem;
+             background: rgba(102, 178, 255, 0.1);
+             border-radius: 4px;
+         }
+
+         .url-validation-message {
+             padding: 0.5rem;
+             border-radius: 4px;
+             font-size: 0.85rem;
+             margin-top: 0.5rem;
+         }
+
+         .url-validation-message.available {
+             background: rgba(25, 135, 84, 0.1);
+             color: #198754;
+             border: 1px solid rgba(25, 135, 84, 0.3);
+         }
+
+         .url-validation-message.unavailable {
+             background: rgba(220, 53, 69, 0.1);
+             color: #dc3545;
+             border: 1px solid rgba(220, 53, 69, 0.3);
+         }
+
+         .url-validation-message.checking {
+             background: rgba(255, 193, 7, 0.1);
+             color: #ffc107;
+             border: 1px solid rgba(255, 193, 7, 0.3);
+         }
+
+         /* Nome do Projeto Editável */
+         .project-name-editable-container {
+             width: 100%;
+         }
+
+         .project-name-display-container {
+             display: flex;
+             align-items: center;
+             gap: 0.5rem;
+         }
+
+         .project-name-display {
+             font-size: 1.5rem;
+             font-weight: 600;
+             color: var(--text-color);
+         }
+
+         .project-name-edit-container {
+             display: flex;
+             flex-direction: column;
+         }
+
+         .project-name-validation-message {
+             padding: 0.5rem;
+             border-radius: 4px;
+             font-size: 0.85rem;
+         }
+
+         .project-name-validation-message.available {
+             background: rgba(25, 135, 84, 0.1);
+             color: #198754;
+             border: 1px solid rgba(25, 135, 84, 0.3);
+         }
+
+         .project-name-validation-message.unavailable {
+             background: rgba(220, 53, 69, 0.1);
+             color: #dc3545;
+             border: 1px solid rgba(220, 53, 69, 0.3);
+         }
+
+         .project-name-validation-message.checking {
+             background: rgba(255, 193, 7, 0.1);
+             color: #ffc107;
+             border: 1px solid rgba(255, 193, 7, 0.3);
+         }
 
         /* Seção de Ações */
         .actions-section {
@@ -721,6 +843,264 @@
         .fade-in {
             animation: fadeIn 0.3s ease-out;
         }
+
+        /* UptimeRobot Style Clone List */
+        .clones-list-container {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 0;
+            margin-top: 2rem;
+            overflow: hidden;
+        }
+
+        .clones-list-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--card-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .clones-list-header h2 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .clones-list-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .clones-list-search {
+            display: flex;
+            align-items: center;
+            background: var(--bg-color);
+            border: 1px solid var(--card-border);
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            min-width: 200px;
+        }
+
+        .clones-list-search input {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-color);
+            flex: 1;
+            font-size: 0.9rem;
+        }
+
+        .clones-list-search i {
+            color: var(--muted);
+            margin-right: 0.5rem;
+        }
+
+        .clone-item {
+            display: flex;
+            align-items: center;
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--card-border);
+            transition: background-color 0.2s;
+            cursor: pointer;
+        }
+
+        .clone-item:hover {
+            background: var(--bg-color);
+        }
+
+        .clone-item:last-child {
+            border-bottom: none;
+        }
+
+        .clone-status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+
+        .clone-status-indicator.published {
+            background: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+        }
+
+        .clone-status-indicator.draft {
+            background: #9ca3af;
+            box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.2);
+        }
+
+        .clone-main-info {
+            flex: 1;
+            min-width: 0;
+            margin-right: 1rem;
+        }
+
+        .clone-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text-color);
+            margin-bottom: 0.25rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .clone-url-original {
+            font-size: 0.85rem;
+            color: var(--muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .clone-details {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            margin-right: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .clone-uptime {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .clone-uptime-text {
+            font-size: 0.85rem;
+            color: var(--text-color);
+            font-weight: 500;
+        }
+
+        .clone-uptime-graph {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            margin-top: 0.25rem;
+        }
+
+        .uptime-bar {
+            width: 4px;
+            height: 16px;
+            border-radius: 2px;
+            background: #10b981;
+        }
+
+        .uptime-bar.inactive {
+            background: #e5e7eb;
+        }
+
+        .clone-stats {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            font-size: 0.85rem;
+        }
+
+        .clone-stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .clone-stat-label {
+            color: var(--muted);
+            font-size: 0.75rem;
+        }
+
+        .clone-stat-value {
+            color: var(--text-color);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .clone-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        .clone-action-btn {
+            background: transparent;
+            border: 1px solid var(--card-border);
+            color: var(--text-color);
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .clone-action-btn:hover {
+            background: var(--bg-color);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .clone-action-btn.primary {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .clone-action-btn.primary:hover {
+            background: #5599ff;
+            border-color: #5599ff;
+            color: white;
+        }
+
+        .clone-percentage {
+            color: var(--muted);
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        @media (max-width: 1024px) {
+            .clone-details {
+                gap: 1rem;
+            }
+
+            .clone-stats {
+                gap: 1rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .clone-item {
+                flex-wrap: wrap;
+                padding: 1rem;
+            }
+
+            .clone-main-info {
+                width: 100%;
+                margin-bottom: 0.75rem;
+            }
+
+            .clone-details {
+                width: 100%;
+                margin-bottom: 0.75rem;
+            }
+
+            .clone-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+        }
     </style>
 </head>
 <body>
@@ -774,48 +1154,114 @@
                     <h1 class="page-title">Dashboard</h1>
                     <p class="page-subtitle">Visão geral dos seus clones</p>
                 </div>
-            </div>
-
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon primary">
-                        <i class="fas fa-file-code"></i>
-                    </div>
-                    <div class="stat-value" id="statTotalFiles"><%= stats ? stats.totalFiles : 0 %></div>
-                    <div class="stat-label">Total de Clones</div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-icon success">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                    <div class="stat-value" id="statPublished"><%= stats ? stats.published : 0 %></div>
-                    <div class="stat-label">Publicados</div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-icon warning">
-                        <i class="fas fa-clock"></i>
-                    </div>
-                    <div class="stat-value" id="statDrafts"><%= stats ? stats.drafts : 0 %></div>
-                    <div class="stat-label">Rascunhos</div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-icon info">
-                        <i class="fas fa-link"></i>
-                    </div>
-                    <div class="stat-value" id="statTotalLinks"><%= stats ? stats.totalLinks : 0 %></div>
-                    <div class="stat-label">Links Totais</div>
+                <div class="top-bar-right">
+                    <a href="#" class="add-clone-btn-small" onclick="showSection('new', event); return false;">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Novo Clone</span>
+                    </a>
                 </div>
             </div>
 
-            <!-- Add Clone Button -->
-            <div class="add-clone-button-container">
-                <a href="#" class="add-clone-button" onclick="showSection('new', event); return false;">
-                    <i class="fas fa-plus-circle"></i>
-                    <span>Criar Novo Clone</span>
-                </a>
+            <!-- Clones List (UptimeRobot Style) -->
+            <div class="clones-list-container">
+                <div class="clones-list-header">
+                    <h2>
+                        <i class="fas fa-list"></i>
+                        Clones
+                    </h2>
+                    <div class="clones-list-controls">
+                        <div class="clones-list-search">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="cloneSearchInput" placeholder="Buscar por nome ou URL..." onkeyup="filterClones()">
+                        </div>
+                    </div>
+                </div>
+                <div id="clonesListBody">
+                    <% if (files && files.length > 0) { %>
+                        <% files.forEach(file => { %>
+                            <div class="clone-item" data-clone-name="<%= file.name.toLowerCase() %>" data-clone-url="<%= (file.originalUrl || '').toLowerCase() %>">
+                                <div class="clone-status-indicator <%= file.publishInfo ? 'published' : 'draft' %>"></div>
+                                <div class="clone-main-info">
+                                    <div class="clone-name"><%= file.projectName ? file.projectName : file.name %></div>
+                                    <% if (file.originalUrl) { %>
+                                        <div class="clone-url-original" title="<%= file.originalUrl %>"><%= file.originalUrl %></div>
+                                    <% } else { %>
+                                        <div class="clone-url-original text-muted">Sem URL original</div>
+                                    <% } %>
+                                </div>
+                                <div class="clone-details">
+                                    <div class="clone-uptime">
+                                        <span class="clone-uptime-text" data-created="<%= file.created %>"></span>
+                                        <div class="clone-uptime-graph" data-status="<%= file.publishInfo ? 'published' : 'draft' %>"></div>
+                                    </div>
+                                    <div class="clone-stats">
+                                        <div class="clone-stat-item">
+                                            <span class="clone-stat-label">Status</span>
+                                            <span class="clone-stat-value <%= file.publishInfo ? 'text-success' : 'text-muted' %>">
+                                                <%= file.publishInfo ? 'Publicado' : 'Rascunho' %>
+                                            </span>
+                                        </div>
+                                        <div class="clone-stat-item">
+                                            <span class="clone-stat-label">Tamanho</span>
+                                            <span class="clone-stat-value"><%= (file.size / 1024).toFixed(1) %> KB</span>
+                                        </div>
+                                        <% if (file.publishInfo) { %>
+                                            <div class="clone-stat-item">
+                                                <span class="clone-stat-label">Uptime</span>
+                                                <span class="clone-stat-value text-success">100%</span>
+                                            </div>
+                                        <% } %>
+                                    </div>
+                                </div>
+                                <div class="clone-actions">
+                                    <button type="button" class="clone-action-btn" onclick="event.stopPropagation(); showCloneDetail('<%= file.name %>')" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <a href="/download/<%= file.name %>" class="clone-action-btn primary" title="Download">
+                                        <i class="fas fa-download"></i>
+                                    </a>
+                                    <% if (file.publishInfo) { %>
+                                        <a href="<%= file.publishInfo.publicUrl %>" target="_blank" class="clone-action-btn" title="Abrir URL pública">
+                                            <i class="fas fa-external-link-alt"></i>
+                                        </a>
+                                    <% } %>
+                                    <button type="button" class="clone-action-btn" onclick="event.stopPropagation(); deleteFile('<%= file.name %>')" title="Excluir">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        <% }); %>
+                    <% } else { %>
+                        <div class="text-center py-5">
+                            <i class="fas fa-folder-open" style="font-size: 3rem; color: var(--muted); margin-bottom: 1rem;"></i>
+                            <p class="text-muted mb-0">Nenhum clone encontrado</p>
+                            <p class="text-muted small mt-1">Crie seu primeiro clone usando o botão acima</p>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+
+        <!-- Clone Detail Section (Single Clone View) -->
+        <div id="cloneDetailSection" class="content-section fade-in" style="display: none;">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <a href="#" class="text-decoration-none text-muted mb-2 d-inline-block" onclick="showSection('dashboard', event); return false;" style="font-size: 0.9rem;">
+                        <i class="fas fa-arrow-left me-1"></i> Voltar para Dashboard
+                    </a>
+                    <h2 class="mb-0" id="cloneDetailTitle">
+                        <i class="fas fa-file-code me-2"></i>
+                        Detalhes do Clone
+                    </h2>
+                    <p class="text-muted mb-0" id="cloneDetailSubtitle" style="font-size: 0.9rem;"></p>
+                </div>
+                <button type="button" class="btn btn-primary" id="cloneDetailEditBtn" style="display: none;">
+                    <i class="fas fa-edit me-2"></i> Editar
+                </button>
+            </div>
+
+            <div id="cloneDetailContent">
+                <!-- Conteúdo será preenchido dinamicamente via JavaScript -->
             </div>
         </div>
 
@@ -1071,6 +1517,22 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Armazenar dados dos clones em JavaScript para acesso rápido
+        // eslint-disable-next-line
+        const clonesDataRaw = <%- JSON.stringify(files ? files.reduce((acc, file) => {
+            acc[file.name] = {
+                name: file.name,
+                projectName: file.projectName || null,
+                size: file.size,
+                created: file.created.toISOString(),
+                url: file.url,
+                originalUrl: file.originalUrl || '',
+                publishInfo: file.publishInfo || null
+            };
+            return acc;
+        }, {}) : {}) %>;
+        const clonesData = clonesDataRaw || {};
+
         // Menu Navigation
         function showSection(section, event) {
             // Hide all sections
@@ -1080,7 +1542,10 @@
             document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
             
             // Show selected section
-            document.getElementById(section + 'Section').style.display = 'block';
+            const sectionElement = document.getElementById(section + 'Section');
+            if (sectionElement) {
+                sectionElement.style.display = 'block';
+            }
             
             // Add active to clicked menu item (if clicked from menu)
             if (event && event.target) {
@@ -1097,6 +1562,217 @@
                     });
                 }
             }
+        }
+
+        // Mostrar detalhes do clone (tela individual)
+        function showCloneDetail(filename) {
+            const cloneData = clonesData[filename];
+            if (!cloneData) {
+                showAlert('Clone não encontrado', 'danger');
+                return;
+            }
+
+            // Esconder todas as seções
+            document.querySelectorAll('.content-section').forEach(s => s.style.display = 'none');
+            
+            // Mostrar seção de detalhes
+            const detailSection = document.getElementById('cloneDetailSection');
+            detailSection.style.display = 'block';
+
+            // Preencher título com nome do projeto editável
+            const displayName = cloneData.projectName || cloneData.name;
+            // Escapar valor para uso em atributo onclick (escapar aspas simples)
+            // Se projectName for null ou undefined, usar string vazia
+            const projectNameValue = cloneData.projectName || '';
+            const escapedProjectName = String(projectNameValue).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+            const projectNameForOnClick = `'${escapedProjectName}'`;
+            document.getElementById('cloneDetailTitle').innerHTML = `
+                <div class="project-name-editable-container" id="projectNameContainer_${cloneData.name}">
+                    <div class="project-name-display-container">
+                        <i class="fas fa-file-code me-2"></i>
+                        <span class="project-name-display" id="projectNameDisplay_${cloneData.name}">${displayName}</span>
+                        <button type="button" class="btn btn-sm btn-outline-secondary ms-2" onclick="editProjectName('${cloneData.name}', ${projectNameForOnClick})" id="editProjectNameBtn_${cloneData.name}">
+                            <i class="fas fa-edit me-1"></i> Editar
+                        </button>
+                    </div>
+                    <div class="project-name-edit-container" id="projectNameEditContainer_${cloneData.name}" style="display: none;">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fas fa-file-code me-2"></i>
+                            <input type="text" 
+                                class="form-control" 
+                                id="projectNameInput_${cloneData.name}" 
+                                value="${cloneData.projectName ? cloneData.projectName.replace(/"/g, '&quot;').replace(/'/g, '&#39;') : ''}" 
+                                placeholder="Nome do projeto"
+                                style="max-width: 400px;">
+                            <button type="button" class="btn btn-lg btn-success me-2" onclick="saveProjectName('${cloneData.name}')" id="saveProjectNameBtn_${cloneData.name}" style="font-weight: 600; padding: 0.75rem 2rem;">
+                                Salvar
+                            </button>
+                            <button type="button" class="btn btn-lg btn-outline-secondary" onclick="cancelEditProjectName('${cloneData.name}', ${projectNameForOnClick})" id="cancelProjectNameBtn_${cloneData.name}">
+                                Cancelar
+                            </button>
+                        </div>
+                        <div class="project-name-validation-message" id="projectNameValidation_${cloneData.name}" style="display: none; margin-top: 0.5rem;"></div>
+                    </div>
+                </div>
+            `;
+            
+            // Preencher subtítulo
+            const subtitle = document.getElementById('cloneDetailSubtitle');
+            if (cloneData.originalUrl) {
+                subtitle.textContent = `Clone de ${cloneData.originalUrl}`;
+            } else {
+                subtitle.textContent = 'Sem URL original';
+            }
+
+            // Preencher conteúdo
+            const content = document.getElementById('cloneDetailContent');
+            const createdDate = new Date(cloneData.created);
+            const statusClass = cloneData.publishInfo ? 'published' : 'draft';
+            const statusText = cloneData.publishInfo ? 'Publicado' : 'Rascunho';
+            const statusColor = cloneData.publishInfo ? '#10b981' : '#9ca3af';
+
+            content.innerHTML = `
+                <!-- Status Card -->
+                <div class="file-card mb-3">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="clone-status-indicator ${statusClass}" style="width: 16px; height: 16px; margin: 0;"></div>
+                            <div>
+                                <h5 class="mb-0" style="color: ${statusColor};">${statusText}</h5>
+                                <small class="text-muted">Status atual do clone</small>
+                            </div>
+                        </div>
+                        <div class="status-switch-container" style="margin: 0;">
+                            <label class="status-switch">
+                                <input type="checkbox" 
+                                       ${cloneData.publishInfo ? 'checked' : ''}
+                                       onchange="togglePublishStatus('${cloneData.name}', this.checked)"
+                                       id="switch_detail_${cloneData.name}">
+                                <span class="status-slider"></span>
+                            </label>
+                            <span class="status-label ${statusClass}" id="label_detail_${cloneData.name}">
+                                ${statusText}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Informações Gerais -->
+                <div class="row mb-3">
+                    <div class="col-md-6 mb-3">
+                        <div class="file-card">
+                            <h6 class="mb-3"><i class="fas fa-info-circle me-2"></i>Informações Gerais</h6>
+                            <div class="mb-2">
+                                <small class="text-muted d-block">Nome do Arquivo:</small>
+                                <strong>${cloneData.name}</strong>
+                            </div>
+                            <div class="mb-2">
+                                <small class="text-muted d-block">Tamanho:</small>
+                                <strong>${(cloneData.size / 1024).toFixed(1)} KB</strong>
+                            </div>
+                            <div class="mb-2">
+                                <small class="text-muted d-block">Criado em:</small>
+                                <strong>${createdDate.toLocaleDateString('pt-BR')} às ${createdDate.toLocaleTimeString('pt-BR')}</strong>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Tempo desde criação:</small>
+                                <strong class="clone-uptime-text" data-created="${cloneData.created}"></strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="file-card">
+                            <h6 class="mb-3"><i class="fas fa-link me-2"></i>URLs</h6>
+                            ${cloneData.originalUrl ? `
+                                <div class="mb-3">
+                                    <small class="text-muted d-block mb-1">URL Original:</small>
+                                    <a href="${cloneData.originalUrl}" target="_blank" class="url-pill" title="${cloneData.originalUrl}">
+                                        ${cloneData.originalUrl}
+                                    </a>
+                                </div>
+                            ` : ''}
+                                                         <div class="public-url-highlight" id="publicUrl_detail_${cloneData.name}">
+                                 <div class="d-flex align-items-center justify-content-between mb-2">
+                                     <div class="d-flex align-items-center gap-2">
+                                         <i class="fas fa-globe" style="color: var(--primary);"></i>
+                                         <small class="text-muted fw-bold">URL Pública:</small>
+                                     </div>
+                                     ${cloneData.publishInfo ? `
+                                         <button type="button" class="btn btn-sm btn-outline-primary" onclick="editPublicUrl('${cloneData.name}', '${cloneData.publishInfo.friendlyId}')" id="editUrlBtn_${cloneData.name}">
+                                             <i class="fas fa-edit me-1"></i> Editar
+                                         </button>
+                                     ` : ''}
+                                 </div>
+                                 ${cloneData.publishInfo ? `
+                                     <div class="public-url-editable" id="publicUrlEditable_${cloneData.name}">
+                                         <div class="d-flex align-items-center gap-2 mb-2">
+                                             <span class="text-muted small">${window.location.origin}/p/</span>
+                                             <input type="text" 
+                                                    class="form-control form-control-sm" 
+                                                    id="friendlyIdInput_${cloneData.name}" 
+                                                    value="${cloneData.publishInfo.friendlyId}" 
+                                                    style="max-width: 200px; display: none;"
+                                                    pattern="[a-zA-Z0-9-]+"
+                                                    placeholder="minha-url">
+                                             <span class="public-url-display" id="friendlyIdDisplay_${cloneData.name}">${cloneData.publishInfo.friendlyId}</span>
+                                         </div>
+                                         <div class="url-validation-message" id="urlValidation_${cloneData.name}" style="display: none;"></div>
+                                         <div class="d-flex align-items-center gap-2 mt-2">
+                                             <a href="${cloneData.publishInfo.publicUrl}" target="_blank" class="btn btn-sm btn-primary" id="openUrlBtn_${cloneData.name}">
+                                                 <i class="fas fa-external-link-alt me-1"></i> Abrir
+                                             </a>
+                                             <button class="btn btn-sm btn-outline-secondary" onclick="copyToClipboard('${cloneData.publishInfo.publicUrl}')" title="Copiar URL">
+                                                 <i class="fas fa-copy me-1"></i> Copiar
+                                             </button>
+                                             <button type="button" class="btn btn-sm btn-success" onclick="savePublicUrl('${cloneData.name}')" id="saveUrlBtn_${cloneData.name}" style="display: none;">
+                                                 <i class="fas fa-save me-1"></i> Salvar
+                                             </button>
+                                             <button type="button" class="btn btn-sm btn-outline-secondary" onclick="cancelEditUrl('${cloneData.name}', '${cloneData.publishInfo.friendlyId}')" id="cancelUrlBtn_${cloneData.name}" style="display: none;">
+                                                 Cancelar
+                                             </button>
+                                         </div>
+                                     </div>
+                                 ` : `
+                                     <div class="public-url-box disabled">
+                                         <span class="text-muted">/p/---</span>
+                                         <small class="text-muted">Publique para obter uma URL pública</small>
+                                     </div>
+                                 `}
+                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ações -->
+                <div class="file-card">
+                    <h6 class="mb-3"><i class="fas fa-tools me-2"></i>Ações</h6>
+                    <div class="actions-section" style="border-top: none; padding-top: 0; margin-top: 0;">
+                        <div class="main-actions">
+                            <a href="/download/${cloneData.name}" class="btn-download-primary">
+                                <i class="fas fa-download"></i>
+                                <span>Download</span>
+                            </a>
+                            <div class="secondary-actions">
+                                <button type="button" class="btn-action-secondary" onclick="viewLinks('${cloneData.name}')">
+                                    <i class="fas fa-link"></i> Editar Links
+                                </button>
+                                <button type="button" class="btn-action-danger" onclick="deleteFile('${cloneData.name}')">
+                                    <i class="fas fa-trash"></i> Excluir
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Atualizar tempo relativo
+            const uptimeText = content.querySelector('.clone-uptime-text[data-created]');
+            if (uptimeText) {
+                uptimeText.textContent = getRelativeTime(cloneData.created);
+            }
+
+            // Scroll para o topo
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         // Theme Toggle
@@ -1381,12 +2057,13 @@
         }
 
         async function togglePublishStatus(filename, isPublishing) {
-            const switchInput = document.getElementById(`switch_${filename}`);
-            const label = document.getElementById(`label_${filename}`);
-            const publicUrlDiv = document.getElementById(`publicUrl_${filename}`);
+            // Encontrar elementos tanto na lista quanto na tela de detalhes
+            const switchInput = document.getElementById(`switch_${filename}`) || document.getElementById(`switch_detail_${filename}`);
+            const label = document.getElementById(`label_${filename}`) || document.getElementById(`label_detail_${filename}`);
+            const publicUrlDiv = document.getElementById(`publicUrl_${filename}`) || document.getElementById(`publicUrl_detail_${filename}`);
             
             // Desabilitar temporariamente
-            switchInput.disabled = true;
+            if (switchInput) switchInput.disabled = true;
 
             try {
                 if (isPublishing) {
@@ -1400,32 +2077,44 @@
                         const fullUrl = window.location.origin + data.publicUrl;
                         showAlert(`Clone publicado com sucesso! URL: ${fullUrl}`, 'success');
                         
-                        // Atualizar label
-                        label.textContent = 'Publicado';
-                        label.className = 'status-label published';
+                        // Atualizar label (tanto na lista quanto na tela de detalhes)
+                        if (label) {
+                            label.textContent = 'Publicado';
+                            label.className = 'status-label published';
+                        }
                         
-                        // Atualizar URL pública com novo layout
-                        publicUrlDiv.innerHTML = `
-                            <div class="d-flex align-items-center gap-2 mb-2">
-                                <i class="fas fa-globe" style="color: var(--primary);"></i>
-                                <small class="text-muted fw-bold">URL Pública:</small>
-                            </div>
-                            <div class="public-url-box">
-                                <a href="${data.publicUrl}" target="_blank" class="public-url-link">
-                                    <i class="fas fa-external-link-alt me-2"></i>
-                                    ${data.publicUrl}
-                                </a>
-                                <button class="copy-url-btn" onclick="copyToClipboard('${data.publicUrl}')" title="Copiar URL">
-                                    <i class="fas fa-copy"></i>
-                                </button>
-                            </div>
-                        `;
+                        // Atualizar URL pública com novo layout (tanto na lista quanto na tela de detalhes)
+                        if (publicUrlDiv) {
+                            publicUrlDiv.innerHTML = `
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <i class="fas fa-globe" style="color: var(--primary);"></i>
+                                    <small class="text-muted fw-bold">URL Pública:</small>
+                                </div>
+                                <div class="public-url-box">
+                                    <a href="${data.publicUrl}" target="_blank" class="public-url-link">
+                                        <i class="fas fa-external-link-alt me-2"></i>
+                                        ${data.publicUrl}
+                                    </a>
+                                    <button class="copy-url-btn" onclick="copyToClipboard('${data.publicUrl}')" title="Copiar URL">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            `;
+                        }
+                        
+                        // Atualizar dados no objeto clonesData
+                        if (clonesData[filename]) {
+                            clonesData[filename].publishInfo = {
+                                publicUrl: data.publicUrl,
+                                friendlyId: data.friendlyId
+                            };
+                        }
                         
                         // Atualizar estatísticas no dashboard dinamicamente
                         updateDashboardStats(1, -1); // Incrementa publicados, decrementa rascunhos
                     } else {
                         showAlert(data.error || 'Erro ao publicar clone', 'danger');
-                        switchInput.checked = false;
+                        if (switchInput) switchInput.checked = false;
                     }
                 } else {
                     const response = await fetch(`/publish/${filename}`, {
@@ -1437,28 +2126,37 @@
                     if (response.ok) {
                         showAlert('Clone movido para Rascunho com sucesso!', 'success');
                         
-                        // Atualizar label
-                        label.textContent = 'Rascunho';
-                        label.className = 'status-label draft';
+                        // Atualizar label (tanto na lista quanto na tela de detalhes)
+                        if (label) {
+                            label.textContent = 'Rascunho';
+                            label.className = 'status-label draft';
+                        }
                         
-                        // Atualizar URL pública para modo rascunho
-                        const urlToShow = data.publicUrl || '/p/---';
-                        publicUrlDiv.innerHTML = `
-                            <div class="d-flex align-items-center gap-2 mb-2">
-                                <i class="fas fa-globe" style="color: var(--muted);"></i>
-                                <small class="text-muted fw-bold">URL Pública:</small>
-                            </div>
-                            <div class="public-url-box disabled">
-                                <span class="text-muted strikethrough">${urlToShow}</span>
-                                <small class="text-muted">Publique para obter uma URL pública</small>
-                            </div>
-                        `;
+                        // Atualizar URL pública para modo rascunho (tanto na lista quanto na tela de detalhes)
+                        if (publicUrlDiv) {
+                            const urlToShow = data.publicUrl || '/p/---';
+                            publicUrlDiv.innerHTML = `
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <i class="fas fa-globe" style="color: var(--muted);"></i>
+                                    <small class="text-muted fw-bold">URL Pública:</small>
+                                </div>
+                                <div class="public-url-box disabled">
+                                    <span class="text-muted strikethrough">${urlToShow}</span>
+                                    <small class="text-muted">Publique para obter uma URL pública</small>
+                                </div>
+                            `;
+                        }
+                        
+                        // Atualizar dados no objeto clonesData
+                        if (clonesData[filename]) {
+                            clonesData[filename].publishInfo = null;
+                        }
                         
                         // Atualizar estatísticas no dashboard dinamicamente
                         updateDashboardStats(-1, 1); // Decrementa publicados, incrementa rascunhos
                     } else {
                         showAlert(data.error || 'Erro ao despublicar', 'danger');
-                        switchInput.checked = true;
+                        if (switchInput) switchInput.checked = true;
                     }
                 }
             } catch (error) {
@@ -1485,6 +2183,106 @@
             const modal = document.getElementById('progressModal');
             modal.style.display = 'none';
         }
+
+        // ========== UptimeRobot Style Clone List Functions ==========
+
+        // Calcular tempo relativo (ex: "Criado há 2 horas, 30 min")
+        function getRelativeTime(dateString) {
+            const now = new Date();
+            const created = new Date(dateString);
+            const diffMs = now - created;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMins / 60);
+            const diffDays = Math.floor(diffHours / 24);
+
+            if (diffDays > 0) {
+                return `Criado há ${diffDays} ${diffDays === 1 ? 'dia' : 'dias'}`;
+            } else if (diffHours > 0) {
+                const remainingMins = diffMins % 60;
+                if (remainingMins > 0) {
+                    return `Criado há ${diffHours} ${diffHours === 1 ? 'hora' : 'horas'}, ${remainingMins} ${remainingMins === 1 ? 'min' : 'min'}`;
+                }
+                return `Criado há ${diffHours} ${diffHours === 1 ? 'hora' : 'horas'}`;
+            } else if (diffMins > 0) {
+                return `Criado há ${diffMins} ${diffMins === 1 ? 'minuto' : 'minutos'}`;
+            } else {
+                return 'Criado agora';
+            }
+        }
+
+        // Gerar gráfico de barras simples (estilo UptimeRobot)
+        function generateUptimeBars(status) {
+            const isPublished = status === 'published';
+            const barsCount = 20; // Número de barras
+            let html = '';
+
+            // Para publicados, todas as barras são verdes
+            // Para rascunhos, algumas barras são cinzas (simula menor "uptime")
+            if (isPublished) {
+                for (let i = 0; i < barsCount; i++) {
+                    html += '<div class="uptime-bar"></div>';
+                }
+            } else {
+                // Para rascunhos, mostrar algumas barras inativas
+                const activeBars = Math.floor(barsCount * 0.7); // 70% ativas
+                for (let i = 0; i < barsCount; i++) {
+                    if (i < activeBars) {
+                        html += '<div class="uptime-bar"></div>';
+                    } else {
+                        html += '<div class="uptime-bar inactive"></div>';
+                    }
+                }
+            }
+
+            return html;
+        }
+
+        // Inicializar lista de clones (calcular tempos e gerar gráficos)
+        function initClonesList() {
+            const uptimeTexts = document.querySelectorAll('.clone-uptime-text[data-created]');
+            const uptimeGraphs = document.querySelectorAll('.clone-uptime-graph[data-status]');
+
+            uptimeTexts.forEach(element => {
+                const created = element.getAttribute('data-created');
+                if (created) {
+                    element.textContent = getRelativeTime(created);
+                    // Atualizar a cada minuto
+                    setInterval(() => {
+                        element.textContent = getRelativeTime(created);
+                    }, 60000);
+                }
+            });
+
+            uptimeGraphs.forEach(element => {
+                const status = element.getAttribute('data-status');
+                if (status) {
+                    element.innerHTML = generateUptimeBars(status);
+                }
+            });
+        }
+
+        // Filtrar clones por busca
+        function filterClones() {
+            const searchInput = document.getElementById('cloneSearchInput');
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            const cloneItems = document.querySelectorAll('.clone-item');
+
+            cloneItems.forEach(item => {
+                const cloneName = item.getAttribute('data-clone-name') || '';
+                const cloneUrl = item.getAttribute('data-clone-url') || '';
+
+                if (searchTerm === '' || cloneName.includes(searchTerm) || cloneUrl.includes(searchTerm)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        // Inicializar quando a página carregar
+        document.addEventListener('DOMContentLoaded', function() {
+            initClonesList();
+        });
 
         function updateProgressStep(stepNum) {
             const step = document.getElementById(`step${stepNum}`);
@@ -1585,29 +2383,443 @@
             }
         });
 
-        // Função para copiar URL para área de transferência
-        function copyToClipboard(url) {
-            // Se a URL já for completa, usar ela; senão, adicionar origin
-            const fullUrl = url.startsWith('http') ? url : window.location.origin + url;
-            navigator.clipboard.writeText(fullUrl).then(() => {
-                showAlert('URL copiada para a área de transferência!', 'success');
-            }).catch(err => {
-                // Fallback para navegadores antigos
-                const textArea = document.createElement('textarea');
-                textArea.value = fullUrl;
-                textArea.style.position = 'fixed';
-                textArea.style.opacity = '0';
-                document.body.appendChild(textArea);
-                textArea.select();
-                try {
-                    document.execCommand('copy');
-                    showAlert('URL copiada para a área de transferência!', 'success');
-                } catch (err) {
-                    showAlert('Erro ao copiar URL', 'danger');
-                }
-                document.body.removeChild(textArea);
-            });
-        }
+                 // Função para copiar URL para área de transferência
+         function copyToClipboard(url) {
+             // Se a URL já for completa, usar ela; senão, adicionar origin
+             const fullUrl = url.startsWith('http') ? url : window.location.origin + url;
+             navigator.clipboard.writeText(fullUrl).then(() => {
+                 showAlert('URL copiada para a área de transferência!', 'success');
+             }).catch(err => {
+                 // Fallback para navegadores antigos
+                 const textArea = document.createElement('textarea');
+                 textArea.value = fullUrl;
+                 textArea.style.position = 'fixed';
+                 textArea.style.opacity = '0';
+                 document.body.appendChild(textArea);
+                 textArea.select();
+                 try {
+                     document.execCommand('copy');
+                     showAlert('URL copiada para a área de transferência!', 'success');
+                 } catch (err) {
+                     showAlert('Erro ao copiar URL', 'danger');
+                 }
+                 document.body.removeChild(textArea);
+             });
+         }
+
+         // Variável para armazenar timeout de validação
+         let urlValidationTimeout = null;
+         let projectNameValidationTimeout = null;
+
+         // Editar URL pública
+         function editPublicUrl(filename, currentFriendlyId) {
+             const input = document.getElementById(`friendlyIdInput_${filename}`);
+             const display = document.getElementById(`friendlyIdDisplay_${filename}`);
+             const editBtn = document.getElementById(`editUrlBtn_${filename}`);
+             const saveBtn = document.getElementById(`saveUrlBtn_${filename}`);
+             const cancelBtn = document.getElementById(`cancelUrlBtn_${filename}`);
+             const openBtn = document.getElementById(`openUrlBtn_${filename}`);
+             const validationDiv = document.getElementById(`urlValidation_${filename}`);
+
+             if (input && display && editBtn && saveBtn && cancelBtn) {
+                 input.style.display = 'inline-block';
+                 display.style.display = 'none';
+                 editBtn.style.display = 'none';
+                 saveBtn.style.display = 'inline-block';
+                 cancelBtn.style.display = 'inline-block';
+                 openBtn.style.display = 'none';
+                 input.value = currentFriendlyId;
+                 input.focus();
+                 input.select();
+                 validationDiv.style.display = 'none';
+
+                 // Adicionar evento de input para validação em tempo real
+                 input.addEventListener('input', function() {
+                     clearTimeout(urlValidationTimeout);
+                     const value = input.value.trim();
+                     
+                     if (value === currentFriendlyId) {
+                         validationDiv.style.display = 'none';
+                         saveBtn.disabled = false;
+                         return;
+                     }
+
+                     if (value.length === 0) {
+                         validationDiv.style.display = 'none';
+                         saveBtn.disabled = true;
+                         return;
+                     }
+
+                     // Validar formato
+                     if (!/^[a-zA-Z0-9-]+$/.test(value)) {
+                         validationDiv.style.display = 'block';
+                         validationDiv.className = 'url-validation-message unavailable';
+                         validationDiv.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> Use apenas letras, números e hífen';
+                         saveBtn.disabled = true;
+                         return;
+                     }
+
+                     // Mostrar mensagem de verificação
+                     validationDiv.style.display = 'block';
+                     validationDiv.className = 'url-validation-message checking';
+                     validationDiv.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Verificando disponibilidade...';
+                     saveBtn.disabled = true;
+
+                     // Debounce: aguardar 500ms após o usuário parar de digitar
+                     urlValidationTimeout = setTimeout(async () => {
+                         try {
+                             const response = await fetch(`/check-url/${encodeURIComponent(value)}`);
+                             
+                             // Verificar se a resposta foi bem-sucedida
+                             if (!response.ok) {
+                                 // Tentar parsear JSON do erro
+                                 let errorMessage = 'Erro ao verificar disponibilidade';
+                                 try {
+                                     const errorData = await response.json();
+                                     errorMessage = errorData.error || errorMessage;
+                                 } catch (e) {
+                                     // Se não conseguir parsear, usar mensagem padrão
+                                     errorMessage = `Erro ${response.status}: ${response.statusText}`;
+                                 }
+                                 
+                                 validationDiv.className = 'url-validation-message unavailable';
+                                 validationDiv.innerHTML = `<i class="fas fa-exclamation-circle me-1"></i> ${errorMessage}`;
+                                 saveBtn.disabled = true;
+                                 return;
+                             }
+
+                             // Parsear JSON da resposta
+                             let data;
+                             try {
+                                 data = await response.json();
+                             } catch (jsonError) {
+                                 console.error('Erro ao parsear resposta JSON:', jsonError);
+                                 validationDiv.className = 'url-validation-message unavailable';
+                                 validationDiv.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> Resposta inválida do servidor';
+                                 saveBtn.disabled = true;
+                                 return;
+                             }
+
+                             // Processar resposta
+                             if (data.available) {
+                                 validationDiv.className = 'url-validation-message available';
+                                 validationDiv.innerHTML = '<i class="fas fa-check-circle me-1"></i> URL disponível!';
+                                 saveBtn.disabled = false;
+                             } else {
+                                 validationDiv.className = 'url-validation-message unavailable';
+                                 validationDiv.innerHTML = `<i class="fas fa-times-circle me-1"></i> ${data.error || 'URL não disponível'}`;
+                                 saveBtn.disabled = true;
+                             }
+                         } catch (error) {
+                             console.error('Erro ao verificar URL:', error);
+                             validationDiv.className = 'url-validation-message unavailable';
+                             validationDiv.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> Erro de conexão. Verifique sua internet.';
+                             saveBtn.disabled = true;
+                         }
+                     }, 500);
+                 });
+             }
+         }
+
+         // Cancelar edição de URL
+         function cancelEditUrl(filename, originalFriendlyId) {
+             const input = document.getElementById(`friendlyIdInput_${filename}`);
+             const display = document.getElementById(`friendlyIdDisplay_${filename}`);
+             const editBtn = document.getElementById(`editUrlBtn_${filename}`);
+             const saveBtn = document.getElementById(`saveUrlBtn_${filename}`);
+             const cancelBtn = document.getElementById(`cancelUrlBtn_${filename}`);
+             const openBtn = document.getElementById(`openUrlBtn_${filename}`);
+             const validationDiv = document.getElementById(`urlValidation_${filename}`);
+
+             if (input && display && editBtn && saveBtn && cancelBtn) {
+                 input.style.display = 'none';
+                 display.style.display = 'inline';
+                 editBtn.style.display = 'inline-block';
+                 saveBtn.style.display = 'none';
+                 cancelBtn.style.display = 'none';
+                 openBtn.style.display = 'inline-block';
+                 input.value = originalFriendlyId;
+                 validationDiv.style.display = 'none';
+                 clearTimeout(urlValidationTimeout);
+             }
+         }
+
+         // Salvar URL pública
+         async function savePublicUrl(filename) {
+             const input = document.getElementById(`friendlyIdInput_${filename}`);
+             const validationDiv = document.getElementById(`urlValidation_${filename}`);
+             const saveBtn = document.getElementById(`saveUrlBtn_${filename}`);
+
+             if (!input || !saveBtn) return;
+
+             const newFriendlyId = input.value.trim();
+
+             if (newFriendlyId.length === 0) {
+                 showAlert('A URL não pode estar vazia', 'danger');
+                 return;
+             }
+
+             if (!/^[a-zA-Z0-9-]+$/.test(newFriendlyId)) {
+                 showAlert('Formato inválido. Use apenas letras, números e hífen', 'danger');
+                 return;
+             }
+
+             saveBtn.disabled = true;
+             saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Salvando...';
+
+             try {
+                 const response = await fetch(`/publish/${filename}`, {
+                     method: 'PUT',
+                     headers: {
+                         'Content-Type': 'application/json'
+                     },
+                     body: JSON.stringify({ friendlyId: newFriendlyId })
+                 });
+
+                 const data = await response.json();
+
+                 if (response.ok) {
+                     showAlert('URL pública atualizada com sucesso!', 'success');
+                     
+                     // Atualizar dados no objeto clonesData
+                     if (clonesData[filename]) {
+                         clonesData[filename].publishInfo = {
+                             publicUrl: data.publicUrl,
+                             friendlyId: data.friendlyId
+                         };
+                     }
+
+                     // Recarregar a seção de detalhes para atualizar a URL
+                     showCloneDetail(filename);
+                 } else {
+                     showAlert(data.error || 'Erro ao atualizar URL', 'danger');
+                     saveBtn.disabled = false;
+                     saveBtn.innerHTML = '<i class="fas fa-save me-1"></i> Salvar';
+                 }
+             } catch (error) {
+                 showAlert('Erro ao atualizar URL', 'danger');
+                 saveBtn.disabled = false;
+                 saveBtn.innerHTML = '<i class="fas fa-save me-1"></i> Salvar';
+             }
+         }
+
+         // Editar nome do projeto
+         function editProjectName(filename, currentProjectName) {
+             console.log('editProjectName chamada com:', filename, currentProjectName);
+             const displayContainer = document.getElementById(`projectNameDisplay_${filename}`)?.parentElement;
+             const editContainer = document.getElementById(`projectNameEditContainer_${filename}`);
+             const input = document.getElementById(`projectNameInput_${filename}`);
+             const editBtn = document.getElementById(`editProjectNameBtn_${filename}`);
+             const saveBtn = document.getElementById(`saveProjectNameBtn_${filename}`);
+             const cancelBtn = document.getElementById(`cancelProjectNameBtn_${filename}`);
+             const validationDiv = document.getElementById(`projectNameValidation_${filename}`);
+
+             console.log('Elementos encontrados:', { displayContainer, editContainer, input, editBtn, saveBtn, cancelBtn });
+
+             if (displayContainer && editContainer && input && editBtn && saveBtn && cancelBtn) {
+                 displayContainer.style.display = 'none';
+                 editContainer.style.display = 'flex';
+                 input.value = currentProjectName || '';
+                 input.focus();
+                 input.select();
+                 validationDiv.style.display = 'none';
+                 
+                 // Habilitar botão salvar inicialmente se houver um nome válido
+                 const initialValue = (currentProjectName || '').trim();
+                 if (initialValue.length > 0 && /^[a-zA-Z0-9\s_-]+$/.test(initialValue)) {
+                     saveBtn.disabled = false;
+                 } else {
+                     saveBtn.disabled = false; // Sempre habilitar, a validação será feita no saveProjectName
+                 }
+
+                 // Adicionar evento de input para validação em tempo real
+                 input.addEventListener('input', function() {
+                     clearTimeout(projectNameValidationTimeout);
+                     const value = input.value.trim();
+                     
+                     if (value === (currentProjectName || '')) {
+                         validationDiv.style.display = 'none';
+                         saveBtn.disabled = false;
+                         return;
+                     }
+
+                     if (value.length === 0) {
+                         validationDiv.style.display = 'none';
+                         saveBtn.disabled = true;
+                         return;
+                     }
+
+                     // Validar formato
+                     if (!/^[a-zA-Z0-9\s_-]+$/.test(value)) {
+                         validationDiv.style.display = 'block';
+                         validationDiv.className = 'project-name-validation-message unavailable';
+                         validationDiv.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> Use apenas letras, números, espaços, hífens e underscores';
+                         saveBtn.disabled = true;
+                         return;
+                     }
+
+                     // Mostrar mensagem de verificação
+                     validationDiv.style.display = 'block';
+                     validationDiv.className = 'project-name-validation-message checking';
+                     validationDiv.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Verificando disponibilidade...';
+                     saveBtn.disabled = true;
+
+                     // Debounce: aguardar 500ms após o usuário parar de digitar
+                     projectNameValidationTimeout = setTimeout(async () => {
+                         try {
+                             const response = await fetch(`/check-project-name/${encodeURIComponent(value)}?filename=${encodeURIComponent(filename)}`);
+                             
+                             if (!response.ok) {
+                                 let errorMessage = 'Erro ao verificar disponibilidade';
+                                 try {
+                                     const errorData = await response.json();
+                                     errorMessage = errorData.error || errorMessage;
+                                 } catch (e) {
+                                     errorMessage = `Erro ${response.status}: ${response.statusText}`;
+                                 }
+                                 
+                                 validationDiv.className = 'project-name-validation-message unavailable';
+                                 validationDiv.innerHTML = `<i class="fas fa-exclamation-circle me-1"></i> ${errorMessage}`;
+                                 saveBtn.disabled = true;
+                                 return;
+                             }
+
+                             let data;
+                             try {
+                                 data = await response.json();
+                             } catch (jsonError) {
+                                 console.error('Erro ao parsear resposta JSON:', jsonError);
+                                 validationDiv.className = 'project-name-validation-message unavailable';
+                                 validationDiv.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> Resposta inválida do servidor';
+                                 saveBtn.disabled = true;
+                                 return;
+                             }
+                             
+                             if (data.available) {
+                                 validationDiv.className = 'project-name-validation-message available';
+                                 validationDiv.innerHTML = '<i class="fas fa-check-circle me-1"></i> Nome disponível!';
+                                 saveBtn.disabled = false;
+                             } else {
+                                 validationDiv.className = 'project-name-validation-message unavailable';
+                                 validationDiv.innerHTML = `<i class="fas fa-times-circle me-1"></i> ${data.error || 'Nome não disponível'}`;
+                                 saveBtn.disabled = true;
+                             }
+                         } catch (error) {
+                             console.error('Erro ao verificar nome do projeto:', error);
+                             validationDiv.className = 'project-name-validation-message unavailable';
+                             validationDiv.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> Erro de conexão. Verifique sua internet.';
+                             saveBtn.disabled = true;
+                         }
+                     }, 500);
+                 });
+             }
+         }
+
+         // Cancelar edição de nome do projeto
+         function cancelEditProjectName(filename, originalProjectName) {
+             const displayContainer = document.getElementById(`projectNameDisplay_${filename}`).parentElement;
+             const editContainer = document.getElementById(`projectNameEditContainer_${filename}`);
+             const input = document.getElementById(`projectNameInput_${filename}`);
+             const validationDiv = document.getElementById(`projectNameValidation_${filename}`);
+
+             if (displayContainer && editContainer && input) {
+                 displayContainer.style.display = 'flex';
+                 editContainer.style.display = 'none';
+                 input.value = originalProjectName || '';
+                 validationDiv.style.display = 'none';
+                 clearTimeout(projectNameValidationTimeout);
+             }
+         }
+
+         // Salvar nome do projeto
+         async function saveProjectName(filename) {
+             console.log('saveProjectName chamada com:', filename);
+             const input = document.getElementById(`projectNameInput_${filename}`);
+             const validationDiv = document.getElementById(`projectNameValidation_${filename}`);
+             const saveBtn = document.getElementById(`saveProjectNameBtn_${filename}`);
+
+             if (!input) {
+                 console.error('Input não encontrado para:', filename);
+                 showAlert('Erro: campo de entrada não encontrado', 'danger');
+                 return;
+             }
+
+             if (!saveBtn) {
+                 console.error('Botão salvar não encontrado para:', filename);
+                 showAlert('Erro: botão de salvar não encontrado', 'danger');
+                 return;
+             }
+
+             const newProjectName = input.value.trim();
+
+             // Permitir salvar nome vazio (será definido como null no backend)
+             if (newProjectName.length > 0 && !/^[a-zA-Z0-9\s_-]+$/.test(newProjectName)) {
+                 showAlert('Formato inválido. Use apenas letras, números, espaços, hífens e underscores', 'danger');
+                 return;
+             }
+
+             // Desabilitar botão e mostrar loading
+             saveBtn.disabled = true;
+             saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Salvando...';
+
+             try {
+                 console.log('Enviando requisição para salvar nome do projeto:', newProjectName);
+                 const encodedFilename = encodeURIComponent(filename);
+                 const response = await fetch(`/clone/${encodedFilename}/project-name`, {
+                     method: 'PUT',
+                     headers: {
+                         'Content-Type': 'application/json'
+                     },
+                     body: JSON.stringify({ projectName: newProjectName })
+                 });
+
+                 console.log('Resposta recebida:', response.status, response.statusText);
+
+                 let data;
+                 try {
+                     data = await response.json();
+                 } catch (jsonError) {
+                     console.error('Erro ao parsear resposta JSON:', jsonError);
+                     const text = await response.text();
+                     console.error('Resposta do servidor (texto):', text);
+                     throw new Error('Resposta inválida do servidor');
+                 }
+
+                 if (response.ok) {
+                     showAlert('Nome do projeto atualizado com sucesso!', 'success');
+                     
+                     // Atualizar dados no objeto clonesData
+                     if (clonesData[filename]) {
+                         clonesData[filename].projectName = data.projectName;
+                     }
+
+                    // Atualizar o nome exibido na lista (dashboard) sem recarregar
+                    try {
+                        const selector = `.clone-item[data-clone-name="${filename.toLowerCase()}"] .clone-name`;
+                        const nameEl = document.querySelector(selector);
+                        if (nameEl) {
+                            nameEl.textContent = data.projectName || filename;
+                        }
+                    } catch (e) {
+                        console.warn('Não foi possível atualizar o nome na lista:', e);
+                    }
+
+                     // Recarregar a seção de detalhes para atualizar o nome
+                     showCloneDetail(filename);
+                 } else {
+                     const errorMsg = data && data.error ? data.error : 'Erro ao atualizar nome do projeto';
+                     console.error('Erro na resposta:', errorMsg);
+                     showAlert(errorMsg, 'danger');
+                     saveBtn.disabled = false;
+                     saveBtn.innerHTML = '<i class="fas fa-save me-1"></i> Salvar';
+                 }
+             } catch (error) {
+                 console.error('Erro ao salvar nome do projeto:', error);
+                 showAlert('Erro de conexão ao atualizar nome do projeto. Verifique sua internet.', 'danger');
+                 saveBtn.disabled = false;
+                 saveBtn.innerHTML = '<i class="fas fa-save me-1"></i> Salvar';
+             }
+         }
     </script>
 </body>
 </html>

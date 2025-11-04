@@ -115,7 +115,7 @@ async function getUserById(id) {
 
 // ========== FUNÇÕES DE CLONES ==========
 
-async function createClone(userId, filename, originalUrl, fileSize, totalLinks) {
+async function createClone(userId, filename, originalUrl, fileSize, totalLinks, projectName = null) {
     try {
         const { data, error } = await supabase
             .from('clones')
@@ -125,7 +125,8 @@ async function createClone(userId, filename, originalUrl, fileSize, totalLinks) 
                     filename, 
                     original_url: originalUrl, 
                     file_size: fileSize, 
-                    total_links: totalLinks 
+                    total_links: totalLinks,
+                    project_name: projectName
                 }
             ])
             .select()
@@ -218,6 +219,58 @@ async function getCloneByFilename(filename, userId) {
     }
 }
 
+// Verificar se um nome de projeto está disponível para o usuário
+async function getCloneByProjectName(projectName, userId) {
+    try {
+        const { data, error } = await supabase
+            .from('clones')
+            .select('*')
+            .eq('project_name', projectName)
+            .eq('user_id', userId)
+            .single();
+
+        if (error) {
+            if (error.code === 'PGRST116') {
+                return null; // Não encontrado, nome disponível
+            }
+            throw error;
+        }
+
+        return data;
+    } catch (error) {
+        console.error('Erro ao buscar clone por project_name:', error);
+        throw error;
+    }
+}
+
+// Atualizar nome do projeto de um clone
+async function updateCloneProjectName(filename, userId, projectName) {
+    try {
+        // Se projectName estiver vazio, definir como null
+        const projectNameValue = projectName && projectName.trim().length > 0 ? projectName.trim() : null;
+
+        const { data, error } = await supabase
+            .from('clones')
+            .update({ project_name: projectNameValue })
+            .eq('filename', filename)
+            .eq('user_id', userId)
+            .select();
+
+        if (error) {
+            // Se for erro de UNIQUE constraint, retornar erro específico
+            if (error.code === '23505' || (error.message && error.message.includes('unique'))) {
+                throw new Error('Este nome de projeto já está em uso');
+            }
+            throw error;
+        }
+
+        return { updated: data && data.length > 0 };
+    } catch (error) {
+        console.error('Erro ao atualizar nome do projeto:', error);
+        throw error;
+    }
+}
+
 async function deleteClone(filename, userId) {
     try {
         const { data, error } = await supabase
@@ -263,30 +316,50 @@ async function createPublication(cloneId, friendlyId, publicUrl) {
 
 async function getPublicationByFriendlyId(friendlyId) {
     try {
-        const { data, error } = await supabase
+        if (!supabase) {
+            throw new Error('Supabase não está configurado');
+        }
+
+        // Primeiro, buscar a publicação
+        const { data: publicationData, error: publicationError } = await supabase
             .from('publications')
-            .select(`
-                *,
-                clones!inner (
-                    filename,
-                    user_id
-                )
-            `)
+            .select('*')
             .eq('friendly_id', friendlyId)
             .single();
 
-        if (error) {
-            if (error.code === 'PGRST116') {
-                return null;
+        if (publicationError) {
+            if (publicationError.code === 'PGRST116') {
+                return null; // Não encontrado
             }
-            throw error;
+            throw publicationError;
+        }
+
+        if (!publicationData) {
+            return null;
+        }
+
+        // Buscar o clone relacionado para obter o user_id
+        const { data: cloneData, error: cloneError } = await supabase
+            .from('clones')
+            .select('filename, user_id')
+            .eq('id', publicationData.clone_id)
+            .single();
+
+        if (cloneError) {
+            // Se não encontrar o clone, ainda retornar a publicação sem user_id
+            console.warn('Clone não encontrado para publicação:', publicationData.id);
+            return {
+                ...publicationData,
+                user_id: null,
+                filename: null
+            };
         }
 
         // Formatar para manter compatibilidade
         return {
-            ...data,
-            filename: data.clones.filename,
-            user_id: data.clones.user_id
+            ...publicationData,
+            filename: cloneData ? cloneData.filename : null,
+            user_id: cloneData ? cloneData.user_id : null
         };
     } catch (error) {
         console.error('Erro ao buscar publicação por friendly_id:', error);

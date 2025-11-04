@@ -25,6 +25,7 @@ function initDatabase() {
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     user_id INTEGER NOT NULL,
                     filename TEXT NOT NULL,
+                    project_name TEXT,
                     original_url TEXT,
                     file_size INTEGER,
                     total_links INTEGER,
@@ -34,6 +35,16 @@ function initDatabase() {
                 )
             `, (err) => {
                 if (err) return reject(err);
+                
+                // Adicionar coluna project_name se não existir (para bancos existentes)
+                db.run(`ALTER TABLE clones ADD COLUMN project_name TEXT`, () => {
+                    // Ignorar erro se a coluna já existir
+                });
+                
+                // Criar índice único para project_name por usuário
+                db.run(`CREATE UNIQUE INDEX IF NOT EXISTS idx_clones_user_project_name ON clones(user_id, project_name) WHERE project_name IS NOT NULL`, (err) => {
+                    if (err) console.warn('Aviso ao criar índice project_name:', err);
+                });
                 
                 // Tabela de publicações
                 db.run(`
@@ -133,7 +144,7 @@ function getCloneById(cloneId, userId) {
     });
 }
 
-function getCloneByFilename(filename, userId) {
+async function getCloneByFilename(filename, userId) {
     return new Promise((resolve, reject) => {
         db.get(
             'SELECT * FROM clones WHERE filename = ? AND user_id = ?',
@@ -141,6 +152,40 @@ function getCloneByFilename(filename, userId) {
             (err, row) => {
                 if (err) return reject(err);
                 resolve(row);
+            }
+        );
+    });
+}
+
+// Verificar se um nome de projeto está disponível para o usuário
+function getCloneByProjectName(projectName, userId) {
+    return new Promise((resolve, reject) => {
+        db.get(
+            'SELECT * FROM clones WHERE project_name = ? AND user_id = ?',
+            [projectName, userId],
+            (err, row) => {
+                if (err) return reject(err);
+                resolve(row);
+            }
+        );
+    });
+}
+
+// Atualizar nome do projeto de um clone
+function updateCloneProjectName(filename, userId, projectName) {
+    return new Promise((resolve, reject) => {
+        db.run(
+            'UPDATE clones SET project_name = ? WHERE filename = ? AND user_id = ?',
+            [projectName || null, filename, userId],
+            function(err) {
+                if (err) {
+                    // Se for erro de UNIQUE constraint, retornar erro específico
+                    if (err.message && err.message.includes('UNIQUE constraint')) {
+                        return reject(new Error('Este nome de projeto já está em uso'));
+                    }
+                    return reject(err);
+                }
+                resolve({ updated: this.changes > 0 });
             }
         );
     });
@@ -250,6 +295,8 @@ module.exports = {
     getClonesByUserId,
     getCloneById,
     getCloneByFilename,
+    updateCloneProjectName,
+    getCloneByProjectName,
     deleteClone,
     createPublication,
     getPublicationByFriendlyId,

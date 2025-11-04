@@ -17,7 +17,7 @@ function isValidHttpUrl(url) {
     try { const u = new URL(url); return u.protocol === 'http:' || u.protocol === 'https:'; } catch { return false; }
 }
 if (useSupabase && (!envSupabaseUrl || !envSupabaseKey || !isValidHttpUrl(envSupabaseUrl))) {
-    console.warn('SUPABASE habilitado, porém variáveis inválidas. Caindo para SQLite.');
+    console.warn('⚠️  Supabase configurado mas credenciais inválidas. Usando SQLite.');
     useSupabase = false;
 }
 console.log(`🔌 Usando banco de dados: ${useSupabase ? 'Supabase' : 'SQLite'}`);
@@ -34,7 +34,9 @@ const {
     getPublicationByCloneId,
     deletePublicationByClone,
     getStatsByUserId,
-    getUserById
+    getUserById,
+    getCloneByProjectName,
+    updateCloneProjectName
 } = db;
 
 const { requireAuth, register, login } = require('./auth');
@@ -92,6 +94,74 @@ function getUserHtmlDir(userId) {
         fs.mkdirSync(userDir, { recursive: true });
     }
     return userDir;
+}
+
+// Função para garantir que o HTML sempre tenha charset UTF-8
+function ensureUTF8Charset(htmlContent) {
+    try {
+        const $ = cheerio.load(htmlContent, { 
+            decodeEntities: false,
+            withStartIndices: false,
+            withEndIndices: false
+        });
+
+        // Garantir que existe um <head>
+        let head = $('head');
+        if (head.length === 0) {
+            // Se não existe <head>, criar antes do <body> ou no início do <html>
+            const html = $('html');
+            if (html.length > 0) {
+                html.prepend('<head></head>');
+                head = $('head');
+            } else {
+                // Se nem <html> existe, criar estrutura básica
+                $('body').prepend('<head></head>');
+                head = $('head');
+                if (head.length === 0) {
+                    // Último recurso: inserir no início do documento
+                    const body = $('body');
+                    if (body.length > 0) {
+                        body.before('<head></head>');
+                        head = $('head');
+                    } else {
+                        // Documento sem estrutura, adicionar charset no início
+                        return '<meta charset="UTF-8">\n' + htmlContent;
+                    }
+                }
+            }
+        }
+
+        // Verificar se já existe meta charset
+        let metaCharset = head.find('meta[charset]');
+        
+        if (metaCharset.length === 0) {
+            // Não existe, adicionar no início do head
+            head.prepend('<meta charset="UTF-8">');
+        } else {
+            // Existe, verificar se está correto
+            metaCharset.each(function() {
+                const charset = $(this).attr('charset');
+                if (charset && charset.toUpperCase() !== 'UTF-8') {
+                    $(this).attr('charset', 'UTF-8');
+                }
+            });
+        }
+
+        return $.html();
+    } catch (error) {
+        // Se der erro no parsing, tentar adicionar manualmente no início
+        console.warn('Erro ao processar HTML para charset:', error.message);
+        // Verificar se já tem charset
+        if (!/<\s*meta\s+[^>]*charset\s*=\s*["']?UTF-8["']?/i.test(htmlContent)) {
+            // Adicionar no início do head se existir, senão no início do documento
+            if (/<\s*head[^>]*>/i.test(htmlContent)) {
+                return htmlContent.replace(/(<\s*head[^>]*>)/i, '$1\n    <meta charset="UTF-8">');
+            } else {
+                return '<meta charset="UTF-8">\n' + htmlContent;
+            }
+        }
+        return htmlContent;
+    }
 }
 
 // ========== ROTAS DE AUTENTICAÇÃO ==========
@@ -199,6 +269,7 @@ app.get('/dashboard', requireAuth, async (req, res) => {
         // Formatando dados para a view
         const fileInfos = clones.map(clone => ({
             name: clone.filename,
+            projectName: clone.project_name || null,
             size: clone.file_size || 0,
             created: new Date(clone.created_at),
             url: `/html/${clone.filename}`,
@@ -260,16 +331,19 @@ async function transferPendingClones(userId, sessionId) {
                 const id = uuidv4().substring(0, 8);
                 const newFilename = `${timestamp}_${id}.html`;
 
+                // Garantir charset UTF-8 no HTML (pode não ter sido aplicado antes)
+                const htmlWithCharset = ensureUTF8Charset(htmlContent);
+
                 // Salvar no diretório do usuário
                 const userFilePath = path.join(htmlDir, newFilename);
-                fs.writeFileSync(userFilePath, htmlContent);
+                fs.writeFileSync(userFilePath, htmlWithCharset);
 
                 // Salvar metadados
                 const userMetadataPath = path.join(htmlDir, `${newFilename}.json`);
                 fs.writeFileSync(userMetadataPath, JSON.stringify(metadata, null, 2));
 
-                // Salvar no banco
-                await createClone(userId, newFilename, metadata.originalUrl || '', htmlContent.length, metadata.totalLinks || 0);
+                // Salvar no banco (usar tamanho do arquivo corrigido)
+                await createClone(userId, newFilename, metadata.originalUrl || '', htmlWithCharset.length, metadata.totalLinks || 0);
 
                 // Deletar arquivos temporários
                 fs.unlinkSync(tempPath);
@@ -342,10 +416,13 @@ app.post('/copy-public', async (req, res) => {
         const id = uuidv4().substring(0, 8);
         const tempFilename = `session_${req.session.publicSessionId}_${timestamp}_${id}.html`;
 
+        // Garantir charset UTF-8 no HTML
+        const htmlWithCharset = ensureUTF8Charset(response.data);
+
         // Salvar temporariamente
         const tempDir = getTempDir();
         const tempPath = path.join(tempDir, tempFilename);
-        fs.writeFileSync(tempPath, response.data);
+        fs.writeFileSync(tempPath, htmlWithCharset);
 
         // Salvar metadados temporários
         const metadataPath = path.join(tempDir, tempFilename.replace('.html', '.json'));
@@ -437,10 +514,13 @@ app.post('/copy', requireAuth, async (req, res) => {
         const id = uuidv4().substring(0, 8);
         const filename = `${timestamp}_${id}.html`;
 
+        // Garantir charset UTF-8 no HTML
+        const htmlWithCharset = ensureUTF8Charset(response.data);
+
         // Salvar HTML
         const htmlDir = getUserHtmlDir(userId);
         const filePath = path.join(htmlDir, filename);
-        fs.writeFileSync(filePath, response.data);
+        fs.writeFileSync(filePath, htmlWithCharset);
 
         // Salvar metadados JSON
         const metadataPath = path.join(htmlDir, `${filename}.json`);
@@ -452,13 +532,13 @@ app.post('/copy', requireAuth, async (req, res) => {
         };
         fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2));
 
-        // Salvar no banco
-        await createClone(userId, filename, url, response.data.length, links.length);
+        // Salvar no banco (usar tamanho do arquivo corrigido)
+        await createClone(userId, filename, url, htmlWithCharset.length, links.length);
 
         res.json({
             success: true,
             filename: filename,
-            size: response.data.length,
+            size: htmlWithCharset.length,
             totalLinks: links.length,
             links: links.slice(0, 10),
             url: `/html/${filename}`,
@@ -570,7 +650,9 @@ app.post('/update-links', requireAuth, async (req, res) => {
                 }
             });
 
-            fs.writeFileSync(htmlPath, $.html());
+            // Garantir charset UTF-8 antes de salvar
+            const updatedHtml = ensureUTF8Charset($.html());
+            fs.writeFileSync(htmlPath, updatedHtml);
         }
 
         res.json({
@@ -625,6 +707,7 @@ app.delete('/html/:filename', requireAuth, async (req, res) => {
 app.post('/publish/:filename', requireAuth, async (req, res) => {
     const filename = req.params.filename;
     const userId = req.session.userId;
+    const { friendlyId: customFriendlyId } = req.body || {};
 
     try {
         const clone = await getCloneByFilename(filename, userId);
@@ -632,9 +715,41 @@ app.post('/publish/:filename', requireAuth, async (req, res) => {
             return res.status(404).json({ error: 'Clone não encontrado' });
         }
 
-        const friendlyId = uuidv4().substring(0, 8).replace(/-/g, '');
-        const publicUrl = `/p/${friendlyId}`;
+        // Verificar se já existe publicação
+        const existingPublication = await getPublicationByCloneId(clone.id);
+        if (existingPublication) {
+            return res.status(400).json({ error: 'Clone já está publicado' });
+        }
 
+        let friendlyId;
+        if (customFriendlyId) {
+            // Validar formato
+            if (!/^[a-zA-Z0-9-]+$/.test(customFriendlyId)) {
+                return res.status(400).json({ error: 'Formato inválido. Use apenas letras, números e hífen' });
+            }
+            
+            // Verificar se está disponível
+            const existing = await getPublicationByFriendlyId(customFriendlyId);
+            if (existing && existing.user_id !== userId) {
+                return res.status(400).json({ error: 'Esta URL já está em uso' });
+            }
+            
+            friendlyId = customFriendlyId;
+        } else {
+            // Gerar ID aleatório único
+            let attempts = 0;
+            do {
+                friendlyId = uuidv4().substring(0, 8).replace(/-/g, '');
+                const existing = await getPublicationByFriendlyId(friendlyId);
+                if (!existing) break;
+                attempts++;
+                if (attempts > 10) {
+                    return res.status(500).json({ error: 'Erro ao gerar URL única' });
+                }
+            } while (true);
+        }
+
+        const publicUrl = `/p/${friendlyId}`;
         await createPublication(clone.id, friendlyId, publicUrl);
 
         res.json({
@@ -645,6 +760,103 @@ app.post('/publish/:filename', requireAuth, async (req, res) => {
     } catch (error) {
         console.error('Erro ao publicar:', error);
         res.status(500).json({ error: 'Erro ao publicar clone' });
+    }
+});
+
+// Atualizar URL pública de um clone publicado
+app.put('/publish/:filename', requireAuth, async (req, res) => {
+    const filename = req.params.filename;
+    const userId = req.session.userId;
+    const { friendlyId } = req.body || {};
+
+    if (!friendlyId) {
+        return res.status(400).json({ error: 'friendlyId é obrigatório' });
+    }
+
+    try {
+        const clone = await getCloneByFilename(filename, userId);
+        if (!clone) {
+            return res.status(404).json({ error: 'Clone não encontrado' });
+        }
+
+        // Validar formato
+        if (!/^[a-zA-Z0-9-]+$/.test(friendlyId)) {
+            return res.status(400).json({ error: 'Formato inválido. Use apenas letras, números e hífen' });
+        }
+
+        // Verificar se está disponível
+        const existing = await getPublicationByFriendlyId(friendlyId);
+        if (existing) {
+            // Se a publicação existe e pertence a outro clone do mesmo usuário, não permitir
+            if (existing.user_id === userId && existing.clone_id !== clone.id) {
+                return res.status(400).json({ error: 'Esta URL já está em uso por outro clone seu' });
+            }
+            // Se pertence a outro usuário, não permitir
+            if (existing.user_id !== userId) {
+                return res.status(400).json({ error: 'Esta URL já está em uso' });
+            }
+        }
+
+        // Obter publicação existente
+        const publication = await getPublicationByCloneId(clone.id);
+        if (!publication) {
+            return res.status(404).json({ error: 'Clone não está publicado' });
+        }
+
+        // Atualizar publicação (precisamos deletar e recriar porque friendly_id é UNIQUE)
+        await deletePublicationByClone(clone.id, userId);
+        const publicUrl = `/p/${friendlyId}`;
+        await createPublication(clone.id, friendlyId, publicUrl);
+
+        res.json({
+            success: true,
+            publicUrl: publicUrl,
+            friendlyId: friendlyId
+        });
+    } catch (error) {
+        console.error('Erro ao atualizar URL:', error);
+        res.status(500).json({ error: 'Erro ao atualizar URL' });
+    }
+});
+
+// Verificar se uma URL pública está disponível
+app.get('/check-url/:friendlyId', requireAuth, async (req, res) => {
+    try {
+        // Decodificar o friendlyId da URL
+        let friendlyId = decodeURIComponent(req.params.friendlyId);
+
+        // Validar formato do friendlyId (apenas letras, números e hífen)
+        if (!friendlyId || !/^[a-zA-Z0-9-]+$/.test(friendlyId)) {
+            return res.json({ available: false, error: 'Formato inválido. Use apenas letras, números e hífen' });
+        }
+
+        // Buscar publicação
+        let publication;
+        try {
+            publication = await getPublicationByFriendlyId(friendlyId);
+        } catch (dbError) {
+            console.error('Erro do banco de dados ao verificar URL:', dbError);
+            return res.status(500).json({ available: false, error: 'Erro ao verificar disponibilidade da URL' });
+        }
+        
+        if (publication) {
+            // Verificar se a publicação pertence ao usuário atual (para permitir editar a própria URL)
+            const userId = req.session.userId;
+            if (publication.user_id === userId) {
+                return res.json({ available: true, isOwn: true });
+            }
+            return res.json({ available: false, error: 'Esta URL já está em uso' });
+        }
+
+        // URL disponível
+        res.json({ available: true, isOwn: false });
+    } catch (error) {
+        console.error('Erro ao verificar URL:', error);
+        console.error('Stack trace:', error.stack);
+        // Garantir que sempre retorna JSON válido
+        if (!res.headersSent) {
+            res.status(500).json({ available: false, error: 'Erro ao verificar URL. Tente novamente.' });
+        }
     }
 });
 
@@ -696,6 +908,106 @@ app.delete('/publish/:filename', requireAuth, async (req, res) => {
     } catch (error) {
         console.error('Erro ao despublicar:', error);
         res.status(500).json({ error: 'Erro ao despublicar' });
+    }
+});
+
+// Verificar se um nome de projeto está disponível
+app.get('/check-project-name/:projectName', requireAuth, async (req, res) => {
+    try {
+        // Decodificar o projectName da URL
+        let projectName = decodeURIComponent(req.params.projectName);
+
+        // Validar formato do projectName (permitir letras, números, espaços, hífens e underscores)
+        if (!projectName || !/^[a-zA-Z0-9\s_-]+$/.test(projectName)) {
+            return res.json({ available: false, error: 'Formato inválido. Use apenas letras, números, espaços, hífens e underscores' });
+        }
+
+        // Verificar se o nome está vazio após trim
+        const trimmedName = projectName.trim();
+        if (trimmedName.length === 0) {
+            return res.json({ available: false, error: 'O nome do projeto não pode estar vazio' });
+        }
+
+        // Buscar clone com esse nome de projeto
+        let existingClone;
+        try {
+            existingClone = await getCloneByProjectName(trimmedName, req.session.userId);
+        } catch (dbError) {
+            console.error('Erro do banco de dados ao verificar nome do projeto:', dbError);
+            return res.status(500).json({ available: false, error: 'Erro ao verificar disponibilidade do nome' });
+        }
+        
+        if (existingClone) {
+            // Verificar se o clone encontrado é o mesmo que está sendo editado
+            const filename = req.query.filename; // Passar filename via query para verificar se é o mesmo clone
+            if (filename && existingClone.filename === filename) {
+                return res.json({ available: true, isOwn: true });
+            }
+            return res.json({ available: false, error: 'Este nome de projeto já está em uso' });
+        }
+
+        // Nome disponível
+        res.json({ available: true, isOwn: false });
+    } catch (error) {
+        console.error('Erro ao verificar nome do projeto:', error);
+        console.error('Stack trace:', error.stack);
+        // Garantir que sempre retorna JSON válido
+        if (!res.headersSent) {
+            res.status(500).json({ available: false, error: 'Erro ao verificar nome do projeto. Tente novamente.' });
+        }
+    }
+});
+
+// Atualizar nome do projeto de um clone
+app.put('/clone/:filename/project-name', requireAuth, async (req, res) => {
+    const filename = req.params.filename;
+    const userId = req.session.userId;
+    const { projectName } = req.body || {};
+
+    try {
+        // Verificar se o clone existe e pertence ao usuário
+        const clone = await getCloneByFilename(filename, userId);
+        if (!clone) {
+            return res.status(404).json({ error: 'Clone não encontrado' });
+        }
+
+        // Se projectName for vazio ou apenas espaços, definir como null
+        const trimmedName = projectName ? projectName.trim() : '';
+
+        if (trimmedName.length === 0) {
+            // Permitir definir como vazio (null)
+            await updateCloneProjectName(filename, userId, null);
+            return res.json({
+                success: true,
+                projectName: null
+            });
+        }
+
+        // Validar formato
+        if (!/^[a-zA-Z0-9\s_-]+$/.test(trimmedName)) {
+            return res.status(400).json({ error: 'Formato inválido. Use apenas letras, números, espaços, hífens e underscores' });
+        }
+
+        // Verificar se está disponível (exceto se for o próprio clone)
+        const existing = await getCloneByProjectName(trimmedName, userId);
+        if (existing && existing.filename !== filename) {
+            return res.status(400).json({ error: 'Este nome de projeto já está em uso' });
+        }
+
+        // Atualizar nome do projeto
+        await updateCloneProjectName(filename, userId, trimmedName);
+
+        res.json({
+            success: true,
+            projectName: trimmedName
+        });
+    } catch (error) {
+        console.error('Erro ao atualizar nome do projeto:', error);
+        // Verificar se é erro de nome duplicado
+        if (error.message && error.message.includes('já está em uso')) {
+            return res.status(400).json({ error: error.message });
+        }
+        res.status(500).json({ error: 'Erro ao atualizar nome do projeto' });
     }
 });
 
