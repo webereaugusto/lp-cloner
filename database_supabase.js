@@ -283,6 +283,36 @@ async function updateCloneProjectName(filename, userId, projectName) {
     }
 }
 
+// Atualizar HTML e total_links de um clone
+async function updateCloneHtml(filename, userId, htmlContent, totalLinks) {
+    try {
+        const updateData = {};
+        if (htmlContent !== null && htmlContent !== undefined) {
+            updateData.html_content = htmlContent;
+            updateData.file_size = htmlContent.length;
+        }
+        if (totalLinks !== null && totalLinks !== undefined) {
+            updateData.total_links = totalLinks;
+        }
+
+        const { data, error } = await supabase
+            .from('clones')
+            .update(updateData)
+            .eq('filename', filename)
+            .eq('user_id', userId)
+            .select();
+
+        if (error) {
+            throw error;
+        }
+
+        return { updated: data && data.length > 0 };
+    } catch (error) {
+        console.error('Erro ao atualizar HTML do clone:', error);
+        throw error;
+    }
+}
+
 async function deleteClone(filename, userId) {
     try {
         const { data, error } = await supabase
@@ -494,6 +524,7 @@ module.exports = {
     getCloneByFilename,
     getCloneByProjectName,
     updateCloneProjectName,
+    updateCloneHtml,
     deleteClone,
     createPublication,
     getPublicationByFriendlyId,

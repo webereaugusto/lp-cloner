@@ -36,7 +36,8 @@ const {
     getStatsByUserId,
     getUserById,
     getCloneByProjectName,
-    updateCloneProjectName
+    updateCloneProjectName,
+    updateCloneHtml
 } = db;
 
 const { requireAuth, register, login } = require('./auth');
@@ -697,6 +698,92 @@ app.post('/update-links', requireAuth, async (req, res) => {
     } catch (error) {
         console.error('Erro ao atualizar links:', error);
         res.status(500).json({ error: 'Erro ao atualizar links' });
+    }
+});
+
+// Atualizar links (nova rota com filename no path - para compatibilidade com modal)
+app.post('/update-links/:filename', requireAuth, async (req, res) => {
+    const filename = req.params.filename;
+    const { links } = req.body;
+    const userId = req.session.userId;
+
+    if (!links || !Array.isArray(links)) {
+        return res.status(400).json({ error: 'Links são obrigatórios e devem ser um array' });
+    }
+
+    // Verificar se clone pertence ao usuário
+    const clone = await getCloneByFilename(filename, userId);
+    if (!clone) {
+        return res.status(404).json({ error: 'Clone não encontrado' });
+    }
+
+    try {
+        const htmlDir = getUserHtmlDir(userId);
+        const metadataPath = path.join(htmlDir, `${filename}.json`);
+        
+        // Buscar HTML atual (do banco ou arquivo)
+        let htmlContent = null;
+        if (useSupabase && clone.html_content) {
+            htmlContent = clone.html_content;
+        } else {
+            const htmlPath = path.join(htmlDir, filename);
+            if (fs.existsSync(htmlPath)) {
+                htmlContent = fs.readFileSync(htmlPath, 'utf8');
+            }
+        }
+
+        if (!htmlContent) {
+            return res.status(404).json({ error: 'HTML não encontrado' });
+        }
+
+        // Atualizar links no HTML usando cheerio
+        const $ = cheerio.load(htmlContent);
+        let linkIndex = 0;
+
+        $('a[href]').each((index, element) => {
+            if (linkIndex < links.length) {
+                const newHref = links[linkIndex].url;
+                if (typeof newHref === 'string' && newHref.trim().length > 0) {
+                    $(element).attr('href', newHref.trim());
+                    // Atualizar texto do link se fornecido
+                    if (links[linkIndex].text) {
+                        $(element).text(links[linkIndex].text);
+                    }
+                }
+                linkIndex++;
+            }
+        });
+
+        // Garantir charset UTF-8 antes de salvar
+        const updatedHtml = ensureUTF8Charset($.html());
+
+        // Atualizar arquivo local (se existir)
+        const htmlPath = path.join(htmlDir, filename);
+        if (fs.existsSync(htmlPath)) {
+            fs.writeFileSync(htmlPath, updatedHtml);
+        }
+
+        // Atualizar metadados JSON (se existir)
+        if (fs.existsSync(metadataPath)) {
+            const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf8'));
+            metadata.links = links;
+            metadata.totalLinks = links.length;
+            metadata.updatedAt = new Date().toISOString();
+            fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2));
+        }
+
+        // Atualizar no banco de dados (Supabase ou SQLite)
+        await updateCloneHtml(filename, userId, updatedHtml, links.length);
+
+        res.json({
+            success: true,
+            totalLinks: links.length,
+            message: 'Links atualizados com sucesso'
+        });
+
+    } catch (error) {
+        console.error('Erro ao atualizar links:', error);
+        res.status(500).json({ error: 'Erro ao atualizar links: ' + error.message });
     }
 });
 

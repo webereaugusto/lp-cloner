@@ -191,6 +191,28 @@ function updateCloneProjectName(filename, userId, projectName) {
     });
 }
 
+// Atualizar total_links de um clone (SQLite não armazena HTML no banco)
+function updateCloneHtml(filename, userId, htmlContent, totalLinks) {
+    return new Promise((resolve, reject) => {
+        // No SQLite, só atualizamos total_links pois o HTML fica em arquivos
+        if (totalLinks === null || totalLinks === undefined) {
+            // Se não há totalLinks para atualizar, apenas retornar sucesso
+            return resolve({ updated: true });
+        }
+        
+        db.run(
+            'UPDATE clones SET total_links = ? WHERE filename = ? AND user_id = ?',
+            [totalLinks, filename, userId],
+            function(err) {
+                if (err) {
+                    return reject(err);
+                }
+                resolve({ updated: this.changes > 0 });
+            }
+        );
+    });
+}
+
 function deleteClone(filename, userId) {
     return new Promise((resolve, reject) => {
         db.run(
@@ -296,6 +318,7 @@ module.exports = {
     getCloneById,
     getCloneByFilename,
     updateCloneProjectName,
+    updateCloneHtml,
     getCloneByProjectName,
     deleteClone,
     createPublication,
