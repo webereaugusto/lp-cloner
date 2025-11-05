@@ -703,9 +703,12 @@ app.post('/update-links', requireAuth, async (req, res) => {
 
 // Atualizar links (nova rota com filename no path - para compatibilidade com modal)
 app.post('/update-links/:filename', requireAuth, async (req, res) => {
-    const filename = req.params.filename;
+    // Decodificar filename (Express já decodifica, mas garantindo)
+    const filename = decodeURIComponent(req.params.filename);
     const { links } = req.body;
     const userId = req.session.userId;
+
+    console.log('Atualizando links para:', filename, 'User:', userId, 'Links:', links?.length);
 
     if (!links || !Array.isArray(links)) {
         return res.status(400).json({ error: 'Links são obrigatórios e devem ser um array' });
@@ -714,8 +717,11 @@ app.post('/update-links/:filename', requireAuth, async (req, res) => {
     // Verificar se clone pertence ao usuário
     const clone = await getCloneByFilename(filename, userId);
     if (!clone) {
+        console.error('Clone não encontrado:', filename, 'para usuário:', userId);
         return res.status(404).json({ error: 'Clone não encontrado' });
     }
+
+    console.log('Clone encontrado:', clone.id || clone.filename, 'HTML content disponível:', !!clone.html_content);
 
     try {
         const htmlDir = getUserHtmlDir(userId);
@@ -725,10 +731,14 @@ app.post('/update-links/:filename', requireAuth, async (req, res) => {
         let htmlContent = null;
         if (useSupabase && clone.html_content) {
             htmlContent = clone.html_content;
+            console.log('HTML obtido do Supabase, tamanho:', htmlContent.length);
         } else {
             const htmlPath = path.join(htmlDir, filename);
             if (fs.existsSync(htmlPath)) {
                 htmlContent = fs.readFileSync(htmlPath, 'utf8');
+                console.log('HTML obtido do arquivo local, tamanho:', htmlContent.length);
+            } else {
+                console.error('Arquivo HTML não encontrado em:', htmlPath);
             }
         }
 
@@ -738,19 +748,27 @@ app.post('/update-links/:filename', requireAuth, async (req, res) => {
 
         // Atualizar links no HTML usando cheerio
         const $ = cheerio.load(htmlContent);
-        let linkIndex = 0;
+        const linkElements = $('a[href]').toArray();
+        
+        console.log('Links encontrados no HTML:', linkElements.length, 'Links para atualizar:', links.length);
 
-        $('a[href]').each((index, element) => {
-            if (linkIndex < links.length) {
-                const newHref = links[linkIndex].url;
+        // Atualizar cada link na ordem
+        linkElements.forEach((element, index) => {
+            if (index < links.length && links[index]) {
+                const linkData = links[index];
+                const newHref = linkData.url;
+                
                 if (typeof newHref === 'string' && newHref.trim().length > 0) {
                     $(element).attr('href', newHref.trim());
+                    console.log(`Link ${index} atualizado: ${newHref}`);
+                    
                     // Atualizar texto do link se fornecido
-                    if (links[linkIndex].text) {
-                        $(element).text(links[linkIndex].text);
+                    if (linkData.text && linkData.text.trim()) {
+                        $(element).text(linkData.text.trim());
                     }
+                } else {
+                    console.warn(`Link ${index} ignorado (URL vazia):`, linkData);
                 }
-                linkIndex++;
             }
         });
 
@@ -773,7 +791,9 @@ app.post('/update-links/:filename', requireAuth, async (req, res) => {
         }
 
         // Atualizar no banco de dados (Supabase ou SQLite)
-        await updateCloneHtml(filename, userId, updatedHtml, links.length);
+        console.log('Atualizando HTML no banco de dados...');
+        const updateResult = await updateCloneHtml(filename, userId, updatedHtml, links.length);
+        console.log('Resultado da atualização no banco:', updateResult);
 
         res.json({
             success: true,
@@ -783,6 +803,7 @@ app.post('/update-links/:filename', requireAuth, async (req, res) => {
 
     } catch (error) {
         console.error('Erro ao atualizar links:', error);
+        console.error('Stack trace:', error.stack);
         res.status(500).json({ error: 'Erro ao atualizar links: ' + error.message });
     }
 });

@@ -2411,13 +2411,23 @@
             saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Salvando...';
             
             try {
-                const response = await fetch(`/update-links/${filename}`, {
+                console.log('Salvando links para:', filename, 'Total:', updatedLinks.length);
+                const encodedFilename = encodeURIComponent(filename);
+                const response = await fetch(`/update-links/${encodedFilename}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ links: updatedLinks })
                 });
                 
-                const data = await response.json();
+                let data;
+                try {
+                    data = await response.json();
+                } catch (jsonError) {
+                    console.error('Erro ao parsear resposta JSON:', jsonError);
+                    const text = await response.text();
+                    console.error('Resposta do servidor (texto):', text);
+                    throw new Error('Resposta inválida do servidor');
+                }
                 
                 if (response.ok) {
                     showAlert('Links atualizados com sucesso!', 'success');
@@ -2431,13 +2441,14 @@
                         showCloneDetail(filename);
                     }
                 } else {
+                    console.error('Erro na resposta:', data);
                     showAlert(data.error || 'Erro ao salvar links', 'danger');
                     saveBtn.disabled = false;
                     saveBtn.innerHTML = '<i class="fas fa-save me-1"></i> Salvar Mudanças';
                 }
             } catch (error) {
                 console.error('Erro ao salvar links:', error);
-                showAlert('Erro de conexão ao salvar links', 'danger');
+                showAlert('Erro de conexão ao salvar links: ' + error.message, 'danger');
                 saveBtn.disabled = false;
                 saveBtn.innerHTML = '<i class="fas fa-save me-1"></i> Salvar Mudanças';
             }
