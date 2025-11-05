@@ -1166,6 +1166,21 @@
             box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
         }
 
+        /* Estilos para botões da URL Pública Destacada - texto e bordas brancas */
+        .file-card .btn-outline-light {
+            color: white !important;
+            border-color: white !important;
+            background: transparent;
+        }
+
+        .file-card .btn-outline-light:hover,
+        .file-card .btn-outline-light:focus,
+        .file-card .btn-outline-light:active {
+            color: white !important;
+            border-color: white !important;
+            background: rgba(255, 255, 255, 0.1) !important;
+        }
+
         .clone-details {
             display: flex;
             align-items: center;
@@ -1941,39 +1956,61 @@
 
                 <!-- URL Pública Destacada -->
                 ${cloneData.publishInfo ? `
-                <div class="file-card mb-4" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); border: 2px solid var(--primary);">
-                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-                        <div style="flex: 1; min-width: 250px;">
-                            <div class="d-flex align-items-center gap-2 mb-2">
-                                <i class="fas fa-globe" style="font-size: 1.5rem; color: var(--primary);"></i>
-                                <h6 class="mb-0" style="font-weight: 600; color: var(--text-color);">URL Pública do Clone</h6>
-                            </div>
-                            <div class="d-flex align-items-center gap-2 flex-wrap">
-                                <strong style="font-size: 1.1rem; color: var(--text-color); word-break: break-all; flex: 1; min-width: 200px;">${window.location.origin}/p/${cloneData.publishInfo.friendlyId}</strong>
-                                <div class="d-flex align-items-center gap-2">
-                                    <button type="button" 
-                                            class="btn btn-primary" 
-                                            onclick="window.open('${window.location.origin}/p/${cloneData.publishInfo.friendlyId}', '_blank')" 
-                                            title="Visualizar URL">
-                                        <i class="fas fa-eye me-2"></i>Visualizar
-                                    </button>
-                                    <button type="button" 
-                                            class="btn btn-outline-primary" 
-                                            onclick="copyToClipboard('${window.location.origin}/p/${cloneData.publishInfo.friendlyId}')" 
-                                            title="Copiar URL">
-                                        <i class="fas fa-copy me-2"></i>Copiar
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+                <div class="file-card mb-4">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="fas fa-globe" style="font-size: 1.5rem; color: var(--text-color);"></i>
+                        <h6 class="mb-0" style="font-weight: 600; color: var(--text-color);">URL Pública do Clone</h6>
+                    </div>
+                    <div class="d-flex align-items-center gap-2 mb-3" style="flex-wrap: wrap;">
+                        <a href="${window.location.origin}/p/${cloneData.publishInfo.friendlyId}" 
+                           target="_blank" 
+                           style="font-size: 1.1rem; color: var(--primary); word-break: break-all; text-decoration: none; font-weight: 600; flex: 1; min-width: 200px;">
+                            ${window.location.origin}/p/${cloneData.publishInfo.friendlyId}
+                        </a>
+                        <button type="button" 
+                                class="btn btn-sm btn-link text-muted" 
+                                onclick="copyToClipboard('${window.location.origin}/p/${cloneData.publishInfo.friendlyId}')" 
+                                title="Copiar URL"
+                                style="padding: 0.25rem 0.5rem; text-decoration: none;">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="button" 
+                                class="btn btn-outline-light" 
+                                onclick="window.open('${window.location.origin}/p/${cloneData.publishInfo.friendlyId}', '_blank')" 
+                                title="Visualizar URL"
+                                style="padding: 0.5rem 1rem; min-width: 120px; color: white; border-color: white;">
+                            <i class="fas fa-eye me-2"></i>Visualizar
+                        </button>
+                        <button type="button" 
+                                class="btn btn-outline-light" 
+                                onclick="copyToClipboard('${window.location.origin}/p/${cloneData.publishInfo.friendlyId}')" 
+                                title="Copiar URL"
+                                style="padding: 0.5rem 1rem; min-width: 120px; color: white; border-color: white;">
+                            <i class="fas fa-copy me-2"></i>Copiar
+                        </button>
+                        <button type="button" 
+                                class="btn btn-outline-light" 
+                                onclick="editPublicUrl('${cloneData.name}', '${cloneData.publishInfo.friendlyId}')" 
+                                title="Editar URL"
+                                style="padding: 0.5rem 1rem; min-width: 120px; color: white; border-color: white;">
+                            <i class="fas fa-edit me-2"></i>Editar
+                        </button>
+                        <a href="/download/${cloneData.name}" 
+                           class="btn btn-outline-light" 
+                           title="Download"
+                           style="padding: 0.5rem 1rem; min-width: 120px; color: white; border-color: white; text-decoration: none;">
+                            <i class="fas fa-download me-2"></i>Download
+                        </a>
                     </div>
                 </div>
                 ` : `
-                <div class="file-card mb-4" style="background: rgba(156, 163, 175, 0.05); border: 2px solid #9ca3af; opacity: 0.7;">
+                <div class="file-card mb-4" style="opacity: 0.7;">
                     <div class="d-flex align-items-center gap-2">
-                        <i class="fas fa-globe" style="font-size: 1.5rem; color: #9ca3af;"></i>
+                        <i class="fas fa-globe" style="font-size: 1.5rem; color: var(--muted);"></i>
                         <div>
-                            <h6 class="mb-0" style="font-weight: 600; color: #9ca3af;">URL Pública do Clone</h6>
+                            <h6 class="mb-0" style="font-weight: 600; color: var(--muted);">URL Pública do Clone</h6>
                             <small class="text-muted">Publique o clone para obter uma URL pública</small>
                         </div>
                     </div>
@@ -1987,8 +2024,13 @@
                             <h6 class="mb-3"><i class="fas fa-info-circle me-2"></i>Informações Gerais</h6>
                             <div class="row">
                                 <div class="col-md-6 mb-2">
-                                    <small class="text-muted d-block">Nome do Arquivo:</small>
-                                    <strong>${cloneData.name}</strong>
+                                    <small class="text-muted d-block">URL de Origem:</small>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <a href="/download/${cloneData.name}" class="text-muted" title="Download" style="flex-shrink: 0; text-decoration: none; opacity: 0.7; transition: opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">
+                                            <i class="fas fa-download"></i>
+                                        </a>
+                                        <strong style="flex: 1; word-break: break-word;">${cloneData.originalUrl || 'Sem URL original'}</strong>
+                                    </div>
                                 </div>
                                 <div class="col-md-6 mb-2">
                                     <small class="text-muted d-block">Tamanho:</small>
