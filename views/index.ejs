@@ -1144,6 +1144,28 @@
             color: var(--primary);
         }
 
+        .public-url-action-btn {
+            padding: 0.35rem 0.65rem;
+            background: transparent;
+            border: 1px solid var(--card-border);
+            color: var(--text-color);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+        }
+
+        .public-url-action-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
         .clone-details {
             display: flex;
             align-items: center;
@@ -1881,9 +1903,6 @@
                                 <div style="flex: 1;">
                                     <h6 class="mb-1" style="font-weight: 600; color: var(--text-color);">Editar URL Pública</h6>
                                     <small class="text-muted">Clique para alterar a URL ao vivo</small>
-                                    <div class="mt-2">
-                                        <strong style="font-size: 0.85rem; color: var(--text-color); word-break: break-all;">${window.location.origin}/p/${cloneData.publishInfo.friendlyId}</strong>
-                                    </div>
                                 </div>
                                 <i class="fas fa-chevron-right text-muted" style="transition: transform 0.2s;"></i>
                             </div>
@@ -1920,26 +1939,69 @@
                     </div>
                 </div>
 
+                <!-- URL Pública Destacada -->
+                ${cloneData.publishInfo ? `
+                <div class="file-card mb-4" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); border: 2px solid var(--primary);">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                        <div style="flex: 1; min-width: 250px;">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <i class="fas fa-globe" style="font-size: 1.5rem; color: var(--primary);"></i>
+                                <h6 class="mb-0" style="font-weight: 600; color: var(--text-color);">URL Pública do Clone</h6>
+                            </div>
+                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                <strong style="font-size: 1.1rem; color: var(--text-color); word-break: break-all; flex: 1; min-width: 200px;">${window.location.origin}/p/${cloneData.publishInfo.friendlyId}</strong>
+                                <div class="d-flex align-items-center gap-2">
+                                    <button type="button" 
+                                            class="btn btn-primary" 
+                                            onclick="window.open('${window.location.origin}/p/${cloneData.publishInfo.friendlyId}', '_blank')" 
+                                            title="Visualizar URL">
+                                        <i class="fas fa-eye me-2"></i>Visualizar
+                                    </button>
+                                    <button type="button" 
+                                            class="btn btn-outline-primary" 
+                                            onclick="copyToClipboard('${window.location.origin}/p/${cloneData.publishInfo.friendlyId}')" 
+                                            title="Copiar URL">
+                                        <i class="fas fa-copy me-2"></i>Copiar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                ` : `
+                <div class="file-card mb-4" style="background: rgba(156, 163, 175, 0.05); border: 2px solid #9ca3af; opacity: 0.7;">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fas fa-globe" style="font-size: 1.5rem; color: #9ca3af;"></i>
+                        <div>
+                            <h6 class="mb-0" style="font-weight: 600; color: #9ca3af;">URL Pública do Clone</h6>
+                            <small class="text-muted">Publique o clone para obter uma URL pública</small>
+                        </div>
+                    </div>
+                </div>
+                `}
+
                 <!-- Informações Gerais -->
                 <div class="row mb-3">
                     <div class="col-md-12 mb-3">
                         <div class="file-card">
                             <h6 class="mb-3"><i class="fas fa-info-circle me-2"></i>Informações Gerais</h6>
-                            <div class="mb-2">
-                                <small class="text-muted d-block">Nome do Arquivo:</small>
-                                <strong>${cloneData.name}</strong>
-                            </div>
-                            <div class="mb-2">
-                                <small class="text-muted d-block">Tamanho:</small>
-                                <strong>${(cloneData.size / 1024).toFixed(1)} KB</strong>
-                            </div>
-                            <div class="mb-2">
-                                <small class="text-muted d-block">Criado em:</small>
-                                <strong>${createdDate.toLocaleDateString('pt-BR')} às ${createdDate.toLocaleTimeString('pt-BR')}</strong>
-                            </div>
-                            <div>
-                                <small class="text-muted d-block">Tempo desde criação:</small>
-                                <strong class="clone-uptime-text" data-created="${cloneData.created}"></strong>
+                            <div class="row">
+                                <div class="col-md-6 mb-2">
+                                    <small class="text-muted d-block">Nome do Arquivo:</small>
+                                    <strong>${cloneData.name}</strong>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <small class="text-muted d-block">Tamanho:</small>
+                                    <strong>${(cloneData.size / 1024).toFixed(1)} KB</strong>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <small class="text-muted d-block">Criado em:</small>
+                                    <strong>${createdDate.toLocaleDateString('pt-BR')} às ${createdDate.toLocaleTimeString('pt-BR')}</strong>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <small class="text-muted d-block">Tempo desde criação:</small>
+                                    <strong class="clone-uptime-text" data-created="${cloneData.created}"></strong>
+                                </div>
                             </div>
                         </div>
                     </div>
